@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watermark Tool - 在线水印工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .dropzone { border: 2px dashed #cbd5e1; transition: all 0.3s; }
+        .dropzone:hover, .dropzone.dragover { border-color: #3b82f6; background: #eff6ff; }
+        .loading { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">💧 Watermark Tool</h1>
+            <p class="text-gray-600">在线添加/移除水印 - 图片不上传服务器，内存处理</p>
+        </header>
+
+        <!-- Tab 切换 -->
+        <div class="flex justify-center mb-6">
+            <div class="bg-white rounded-lg p-1 shadow">
+                <button onclick="switchTab('add')" id="tab-add" class="px-6 py-2 rounded-md font-medium bg-blue-500 text-white transition">
+                    添加水印
+                </button>
+                <button onclick="switchTab('remove')" id="tab-remove" class="px-6 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition">
+                    移除水印
+                </button>
+            </div>
+        </div>
+
+        <!-- 添加水印面板 -->
+        <div id="panel-add" class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">📝 添加水印</h2>
+            
+            <!-- 上传区域 -->
+            <div class="dropzone rounded-lg p-8 text-center cursor-pointer mb-4" onclick="document.getElementById('file-input').click()">
+                <input type="file" id="file-input" accept="image/*" class="hidden" onchange="previewImage(this, 'preview')">
+                <div id="upload-prompt">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="mt-2 text-gray-600">点击或拖拽上传图片</p>
+                </div>
+                <img id="preview" class="hidden max-h-64 mx-auto rounded-lg shadow">
+            </div>
+
+            <!-- 选项 -->
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">水印文字</label>
+                    <input type="text" id="watermark-text" placeholder="输入水印文字" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">位置</label>
+                    <select id="position" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="bottom-right">右下角</option>
+                        <option value="bottom-left">左下角</option>
+                        <option value="top-right">右上角</option>
+                        <option value="top-left">左上角</option>
+                        <option value="center">居中</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">透明度：<span id="opacity-value">0.5</span></label>
+                    <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="0.5" class="w-full" oninput="document.getElementById('opacity-value').textContent=this.value">
+                </div>
+            </div>
+
+            <button onclick="addWatermark()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition">
+                开始处理
+            </button>
+        </div>
+
+        <!-- 移除水印面板 -->
+        <div id="panel-remove" class="hidden bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">🧹 移除水印</h2>
+            
+            <div class="dropzone rounded-lg p-8 text-center cursor-pointer mb-4" onclick="document.getElementById('remove-file-input').click()">
+                <input type="file" id="remove-file-input" accept="image/*" class="hidden" onchange="previewImage(this, 'remove-preview')">
+                <div id="remove-upload-prompt">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="mt-2 text-gray-600">点击或拖拽上传图片</p>
+                </div>
+                <img id="remove-preview" class="hidden max-h-64 mx-auto rounded-lg shadow">
+            </div>
+
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p class="text-sm text-yellow-800">
+                    ⚠️ 当前为简化版，自动检测并移除高亮区域水印。复杂场景建议使用专业工具。
+                </p>
+            </div>
+
+            <button onclick="removeWatermark()" class="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 rounded-lg transition">
+                开始移除
+            </button>
+        </div>
+
+        <!-- 结果区域 -->
+        <div id="result-panel" class="hidden bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">✅ 处理完成</h2>
+            <img id="result-image" class="max-h-96 mx-auto rounded-lg shadow mb-4">
+            <a id="download-link" class="block w-full bg-green-500 hover:bg-green-600 text-white text-center font-medium py-3 rounded-lg transition">
+                下载结果
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-500 text-sm mt-8">
+            <p>图片仅在内存处理，不会存储到服务器</p>
+        </footer>
+    </div>
+
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+
+        function switchTab(tab) {
+            document.getElementById('panel-add').classList.toggle('hidden', tab !== 'add');
+            document.getElementById('panel-remove').classList.toggle('hidden', tab !== 'remove');
+            document.getElementById('tab-add').className = tab === 'add' 
+                ? 'px-6 py-2 rounded-md font-medium bg-blue-500 text-white transition' 
+                : 'px-6 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition';
+            document.getElementById('tab-remove').className = tab === 'remove' 
+                ? 'px-6 py-2 rounded-md font-medium bg-blue-500 text-white transition' 
+                : 'px-6 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition';
+            document.getElementById('result-panel').classList.add('hidden');
+        }
+
+        function previewImage(input, previewId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById(previewId).src = e.target.result;
+                    document.getElementById(previewId).classList.remove('hidden');
+                    document.getElementById(input.id.replace('input', 'prompt')).classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function addWatermark() {
+            const fileInput = document.getElementById('file-input');
+            const text = document.getElementById('watermark-text').value;
+            const position = document.getElementById('position').value;
+            const opacity = document.getElementById('opacity').value;
+
+            if (!fileInput.files[0] || !text) {
+                alert('请上传图片并输入水印文字');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('text', text);
+            formData.append('position', position);
+            formData.append('opacity', opacity);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/add-watermark`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('处理失败');
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                document.getElementById('result-image').src = url;
+                document.getElementById('download-link').href = url;
+                document.getElementById('download-link').download = 'watermarked.jpg';
+                document.getElementById('result-panel').classList.remove('hidden');
+            } catch (error) {
+                alert('处理失败：' + error.message);
+            }
+        }
+
+        async function removeWatermark() {
+            const fileInput = document.getElementById('remove-file-input');
+            if (!fileInput.files[0]) {
+                alert('请上传图片');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('mask_type', 'auto');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/remove-watermark`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('处理失败');
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                document.getElementById('result-image').src = url;
+                document.getElementById('download-link').href = url;
+                document.getElementById('download-link').download = 'removed.jpg';
+                document.getElementById('result-panel').classList.remove('hidden');
+            } catch (error) {
+                alert('处理失败：' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  watermark-tool:
+    build: .
+    ports:
+      - "8000:8000"  # API
+      - "3000:3000"  # 前端
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    # 国内版：取消下面注释使用腾讯云镜像加速
+    # image: ccr.ccs.tencentyun.com/watermark-tool:latest

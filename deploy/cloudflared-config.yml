@@ -1,0 +1,17 @@
+# Cloudflare Tunnel 配置文件
+# 用于国外版部署
+
+tunnel: watermark-tool
+credentials-file: /root/.cloudflared/watermark-tool.json
+
+ingress:
+  # 前端
+  - hostname: watermark.your-domain.com
+    service: http://localhost:3000
+    
+  # API
+  - hostname: api.watermark.your-domain.com
+    service: http://localhost:8000
+    
+  # 默认 404
+  - service: http_status:404
