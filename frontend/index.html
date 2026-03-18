@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💧 Watermark Tool - 在线水印处理工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .drop-zone { transition: all 0.3s ease; }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #3b82f6; background-color: #eff6ff; }
+        .preview-container { max-height: 400px; overflow: hidden; }
+        .preview-container img { max-width: 100%; max-height: 400px; object-fit: contain; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <span class="text-2xl">💧</span>
+                    <h1 class="ml-2 text-xl font-bold text-gray-900">Watermark Tool</h1>
+                </div>
+                <div class="text-sm text-gray-500">在线水印处理 · 内存处理 · 隐私安全</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 免责声明 -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+            <div class="flex">
+                <div class="flex-shrink-0"><span class="text-xl">⚠️</span></div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">法律声明</h3>
+                    <p class="text-sm text-yellow-700 mt-1">本工具仅供学习和个人使用。请勿用于移除他人拥有版权的水印。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能选项卡 -->
+        <div class="mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <button onclick="switchTab('add-text')" id="tab-add-text" class="tab-btn border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">添加文字水印</button>
+                    <button onclick="switchTab('add-logo')" id="tab-add-logo" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">添加 Logo 水印</button>
+                    <button onclick="switchTab('remove')" id="tab-remove" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">移除水印</button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- 添加文字水印 -->
+        <div id="panel-add-text" class="tab-panel">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">添加文字水印</h2>
+                
+                <!-- 上传区域 -->
+                <div class="drop-zone border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer" onclick="document.getElementById('file-add-text').click()">
+                    <input type="file" id="file-add-text" class="hidden" accept="image/*" onchange="handleFileSelect(this, 'add-text')">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <p class="mt-1 text-sm text-gray-600">点击或拖拽上传图片</p>
+                    <p class="text-xs text-gray-500">支持 JPG, PNG, WebP，最大 10MB</p>
+                </div>
+
+                <!-- 预览区域 -->
+                <div id="preview-container-add-text" class="mt-4 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">原图</h3>
+                            <div class="preview-container border rounded-lg overflow-hidden">
+                                <img id="preview-original-add-text" src="" alt="原图" class="w-full">
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">效果预览</h3>
+                            <div class="preview-container border rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                                <img id="preview-result-add-text" src="" alt="效果预览" class="w-full hidden">
+                                <span id="preview-placeholder-add-text" class="text-gray-400 text-sm">调整后实时预览</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 参数设置 -->
+                <div class="mt-6">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">基础设置</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="md:col-span-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">水印文字</label>
+                            <input type="text" id="watermark-text" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" value="水印">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">位置</label>
+                            <select id="watermark-position" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="bottom-right">右下角</option>
+                                <option value="bottom-left">左下角</option>
+                                <option value="top-right">右上角</option>
+                                <option value="top-left">左上角</option>
+                                <option value="center">居中</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">文字颜色</label>
+                            <div class="space-y-2">
+                                <div class="flex items-center space-x-2">
+                                    <input type="color" id="watermark-color" value="#000000" class="h-10 w-16 border-gray-300 rounded-md cursor-pointer">
+                                    <span id="color-value" class="text-sm text-gray-600">#000000</span>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="setColor('#ffffff')" class="w-6 h-6 rounded border border-gray-300 bg-white" title="白色"></button>
+                                    <button onclick="setColor('#000000')" class="w-6 h-6 rounded border border-gray-300 bg-black" title="黑色"></button>
+                                    <button onclick="setColor('#ff0000')" class="w-6 h-6 rounded border border-gray-300 bg-red-500" title="红色"></button>
+                                    <button onclick="setColor('#00ff00')" class="w-6 h-6 rounded border border-gray-300 bg-green-500" title="绿色"></button>
+                                    <button onclick="setColor('#0000ff')" class="w-6 h-6 rounded border border-gray-300 bg-blue-500" title="蓝色"></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">透明度：<span id="opacity-value">80%</span></label>
+                            <input type="range" id="watermark-opacity" min="0" max="100" value="80" class="w-full" oninput="document.getElementById('opacity-value').textContent = this.value + '%'">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">字体大小：<span id="fontsize-value">16</span></label>
+                            <input type="range" id="watermark-fontsize" min="12" max="200" value="16" class="w-full" oninput="document.getElementById('fontsize-value').textContent = this.value">
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3 mt-6">高级设置</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">旋转角度：<span id="rotation-value">0°</span></label>
+                            <input type="range" id="watermark-rotation" min="-180" max="180" value="0" class="w-full" oninput="document.getElementById('rotation-value').textContent = this.value + '°'">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">阴影</label>
+                            <select id="watermark-shadow" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="none">无</option>
+                                <option value="light">轻微</option>
+                                <option value="medium">中等</option>
+                                <option value="heavy">强烈</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">背景</label>
+                            <select id="watermark-bg" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="none" selected>无</option>
+                                <option value="solid">纯色</option>
+                                <option value="blur">模糊</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">平铺模式</label>
+                            <select id="watermark-tile" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="none" selected>单个</option>
+                                <option value="tile">网格平铺</option>
+                                <option value="diagonal">对角线</option>
+                            </select>
+                        </div>
+                        <div id="tile-spacing-control" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">平铺间隙：<span id="spacing-value">100</span>px</label>
+                            <input type="range" id="watermark-spacing" min="0" max="300" value="100" class="w-full" oninput="document.getElementById('spacing-value').textContent = this.value">
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="processImage('add-text')" class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">处理并下载</button>
+            </div>
+        </div>
+
+        <!-- 添加 Logo 水印 -->
+        <div id="panel-add-logo" class="tab-panel hidden">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">添加 Logo 水印</h2>
+                
+                <div class="drop-zone border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer" onclick="document.getElementById('file-add-logo').click()">
+                    <input type="file" id="file-add-logo" class="hidden" accept="image/*" onchange="handleFileSelect(this, 'add-logo')">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <p class="mt-1 text-sm text-gray-600">上传原图</p>
+                </div>
+                <div id="preview-container-add-logo" class="mt-4 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">原图</h3>
+                            <div class="preview-container border rounded-lg overflow-hidden">
+                                <img id="preview-original-add-logo" src="" alt="原图" class="w-full">
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">效果预览</h3>
+                            <div class="preview-container border rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                                <img id="preview-result-add-logo" src="" alt="效果预览" class="w-full hidden">
+                                <span id="preview-placeholder-add-logo" class="text-gray-400 text-sm">调整后实时预览</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">上传 Logo（PNG 透明背景）</label>
+                    <input type="file" id="logo-file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/png">
+                </div>
+
+                <div class="mt-6">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">基础设置</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">位置</label>
+                            <select id="logo-position" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="bottom-right">右下角</option>
+                                <option value="bottom-left">左下角</option>
+                                <option value="top-right">右上角</option>
+                                <option value="top-left">左上角</option>
+                                <option value="center">居中</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Logo 大小：<span id="logo-scale-value">20%</span></label>
+                            <input type="range" id="logo-scale" min="5" max="50" value="20" class="w-full" oninput="document.getElementById('logo-scale-value').textContent = this.value + '%'">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">透明度：<span id="logo-opacity-value">80%</span></label>
+                            <input type="range" id="logo-opacity" min="0" max="100" value="80" class="w-full" oninput="document.getElementById('logo-opacity-value').textContent = this.value + '%'">
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">高级设置</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">旋转角度：<span id="logo-rotation-value">0°</span></label>
+                            <input type="range" id="logo-rotation" min="-180" max="180" value="0" class="w-full" oninput="document.getElementById('logo-rotation-value').textContent = this.value + '°'">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">平铺模式</label>
+                            <select id="logo-tile" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="none" selected>单个</option>
+                                <option value="tile">网格平铺</option>
+                                <option value="diagonal">对角线</option>
+                            </select>
+                        </div>
+                        <div id="logo-spacing-control" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">平铺间隙：<span id="logo-spacing-value">100</span>px</label>
+                            <input type="range" id="logo-spacing" min="0" max="300" value="100" class="w-full" oninput="document.getElementById('logo-spacing-value').textContent = this.value">
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="processImage('add-logo')" class="mt-6 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">处理并下载</button>
+            </div>
+        </div>
+
+        <!-- 移除水印 -->
+        <div id="panel-remove" class="tab-panel hidden">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">移除水印（自动检测）</h2>
+                
+                <div class="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
+                    <p class="text-sm text-green-800">✨ 采用多策略融合算法，自动检测并移除水印，支持实时预览。</p>
+                </div>
+
+                <div class="drop-zone border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer" onclick="document.getElementById('file-remove').click()">
+                    <input type="file" id="file-remove" class="hidden" accept="image/*" onchange="handleFileSelect(this, 'remove')">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <p class="mt-1 text-sm text-gray-600">点击或拖拽上传图片</p>
+                    <p class="text-xs text-gray-500">支持 JPG, PNG, WebP，最大 10MB</p>
+                </div>
+
+                <!-- 预览区域 -->
+                <div id="preview-container-remove" class="mt-4 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">原图</h3>
+                            <div class="preview-container border rounded-lg overflow-hidden">
+                                <img id="preview-original-remove" src="" alt="原图" class="w-full">
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">去除效果预览</h3>
+                            <div class="preview-container border rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                                <img id="preview-result-remove" src="" alt="效果预览" class="w-full hidden">
+                                <span id="preview-placeholder-remove" class="text-gray-400 text-sm">处理中...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="processImage('remove')" class="mt-6 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">处理并下载</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <p class="text-center text-sm text-gray-500">💧 Watermark Tool v1.0 · 图片内存处理，不存储到服务器</p>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'http://' + window.location.hostname + ':8000';
+        let currentFiles = {};
+        let previewTimeout = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-panel').forEach(el => el.classList.add('hidden'));
+            document.getElementById('panel-' + tab).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('border-blue-500', 'text-blue-600');
+                el.classList.add('border-transparent', 'text-gray-500');
+            });
+            const activeTab = document.getElementById('tab-' + tab);
+            activeTab.classList.remove('border-transparent', 'text-gray-500');
+            activeTab.classList.add('border-blue-500', 'text-blue-600');
+        }
+
+        function handleFileSelect(input, key) {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) {
+                alert('图片大小超过 10MB 限制');
+                return;
+            }
+            currentFiles[key] = file;
+            const previewContainer = document.getElementById('preview-container-' + key);
+            if (previewContainer) previewContainer.classList.remove('hidden');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const originalImg = document.getElementById('preview-original-' + key);
+                if (originalImg) originalImg.src = e.target.result;
+                // 重置效果预览
+                if (key === 'add-text' || key === 'add-logo') {
+                    const resultImg = document.getElementById('preview-result-' + key);
+                    const placeholder = document.getElementById('preview-placeholder-' + key);
+                    if (resultImg) resultImg.classList.add('hidden');
+                    if (placeholder) placeholder.classList.remove('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+            // 触发预览
+            if (key === 'add-text' || key === 'add-logo') {
+                clearTimeout(previewTimeout);
+                previewTimeout = setTimeout(() => updateLivePreview(key), 300);
+            } else if (key === 'remove') {
+                // 移除水印也触发预览
+                clearTimeout(previewTimeout);
+                previewTimeout = setTimeout(() => updateLivePreview('remove'), 300);
+            }
+        }
+
+        function setupLivePreview() {
+            // 文字水印
+            const textInputs = ['watermark-text', 'watermark-position', 'watermark-color', 'watermark-opacity', 'watermark-fontsize', 'watermark-rotation', 'watermark-shadow', 'watermark-bg', 'watermark-tile', 'watermark-spacing'];
+            textInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', () => {
+                    if (id === 'watermark-color') document.getElementById('color-value').textContent = el.value.toUpperCase();
+                    else if (id === 'watermark-rotation') document.getElementById('rotation-value').textContent = el.value + '°';
+                    else if (id === 'watermark-spacing') document.getElementById('spacing-value').textContent = el.value;
+                    if (id === 'watermark-tile') {
+                        const spacingControl = document.getElementById('tile-spacing-control');
+                        if (spacingControl) {
+                            if (el.value === 'tile' || el.value === 'diagonal') spacingControl.classList.remove('hidden');
+                            else spacingControl.classList.add('hidden');
+                        }
+                    }
+                    clearTimeout(previewTimeout);
+                    previewTimeout = setTimeout(() => updateLivePreview(), 300);
+                });
+            });
+            // Logo 文件变化监听
+            document.getElementById('logo-file')?.addEventListener('change', () => {
+                clearTimeout(previewTimeout);
+                previewTimeout = setTimeout(() => updateLivePreview('add-logo'), 300);
+            });
+            // Logo 水印参数监听
+            const logoInputs = ['logo-position', 'logo-scale', 'logo-opacity', 'logo-rotation', 'logo-tile', 'logo-spacing'];
+            logoInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', () => {
+                    if (id === 'logo-scale') document.getElementById('logo-scale-value').textContent = el.value + '%';
+                    else if (id === 'logo-opacity') document.getElementById('logo-opacity-value').textContent = el.value + '%';
+                    else if (id === 'logo-rotation') document.getElementById('logo-rotation-value').textContent = el.value + '°';
+                    else if (id === 'logo-tile') {
+                        const spacingControl = document.getElementById('logo-spacing-control');
+                        if (spacingControl) {
+                            if (el.value === 'tile' || el.value === 'diagonal') spacingControl.classList.remove('hidden');
+                            else spacingControl.classList.add('hidden');
+                        }
+                    }
+                    clearTimeout(previewTimeout);
+                    previewTimeout = setTimeout(() => updateLivePreview('add-logo'), 300);
+                });
+            });
+            // Logo 水印 - 平铺模式切换
+            const logoTileEl = document.getElementById('logo-tile');
+            if (logoTileEl) {
+                logoTileEl.addEventListener('change', () => {
+                    const spacingControl = document.getElementById('logo-spacing-control');
+                    if (spacingControl) {
+                        if (logoTileEl.value === 'tile' || logoTileEl.value === 'diagonal') spacingControl.classList.remove('hidden');
+                        else spacingControl.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        async function updateLivePreview(type = 'add-text') {
+            const file = currentFiles[type];
+            if (!file) return;
+            
+            if (type === 'add-text') {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('text', document.getElementById('watermark-text').value);
+                formData.append('position', document.getElementById('watermark-position').value);
+                formData.append('opacity', document.getElementById('watermark-opacity').value / 100);
+                formData.append('font_size', document.getElementById('watermark-fontsize').value);
+                formData.append('color', document.getElementById('watermark-color').value);
+                formData.append('rotation', parseInt(document.getElementById('watermark-rotation').value) || 0);
+                formData.append('shadow', document.getElementById('watermark-shadow').value);
+                formData.append('bg', document.getElementById('watermark-bg').value || 'none');
+                formData.append('tile', document.getElementById('watermark-tile').value || 'none');
+                formData.append('spacing', parseInt(document.getElementById('watermark-spacing').value) || 100);
+                
+                try {
+                    const response = await fetch(API_BASE + '/api/add-watermark', { method: 'POST', body: formData });
+                    if (!response.ok) return;
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const resultImg = document.getElementById('preview-result-add-text');
+                    const placeholder = document.getElementById('preview-placeholder-add-text');
+                    if (resultImg) { resultImg.src = url; resultImg.classList.remove('hidden'); }
+                    if (placeholder) placeholder.classList.add('hidden');
+                } catch (error) { console.log('预览更新失败:', error); }
+            }
+            else if (type === 'add-logo') {
+                const logoFile = document.getElementById('logo-file').files[0];
+                if (!logoFile) return;
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('logo', logoFile);
+                formData.append('position', document.getElementById('logo-position').value);
+                formData.append('scale', document.getElementById('logo-scale').value / 100);
+                formData.append('opacity', document.getElementById('logo-opacity').value / 100);
+                formData.append('rotation', parseInt(document.getElementById('logo-rotation').value) || 0);
+                formData.append('tile', document.getElementById('logo-tile').value || 'none');
+                formData.append('spacing', parseInt(document.getElementById('logo-spacing').value) || 100);
+                
+                try {
+                    const response = await fetch(API_BASE + '/api/add-logo-watermark', { method: 'POST', body: formData });
+                    if (!response.ok) return;
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const resultImg = document.getElementById('preview-result-add-logo');
+                    const placeholder = document.getElementById('preview-placeholder-add-logo');
+                    if (resultImg) { resultImg.src = url; resultImg.classList.remove('hidden'); }
+                    if (placeholder) placeholder.classList.add('hidden');
+                } catch (error) { console.log('Logo 预览更新失败:', error); }
+            }
+            else if (type === 'remove') {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('mask_type', 'auto');
+                
+                try {
+                    const response = await fetch(API_BASE + '/api/remove-watermark', { method: 'POST', body: formData });
+                    if (!response.ok) return;
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const resultImg = document.getElementById('preview-result-remove');
+                    const placeholder = document.getElementById('preview-placeholder-remove');
+                    if (resultImg) { resultImg.src = url; resultImg.classList.remove('hidden'); }
+                    if (placeholder) placeholder.classList.add('hidden');
+                } catch (error) { console.log('去水印预览失败:', error); }
+            }
+        }
+
+        function setColor(color) {
+            const colorInput = document.getElementById('watermark-color');
+            const colorValue = document.getElementById('color-value');
+            if (colorInput && colorValue) {
+                colorInput.value = color;
+                colorValue.textContent = color.toUpperCase();
+                clearTimeout(previewTimeout);
+                previewTimeout = setTimeout(() => updateLivePreview(), 300);
+            }
+        }
+
+        async function processImage(type) {
+            let file, formData, url;
+            if (type === 'add-text') {
+                file = currentFiles['add-text'];
+                if (!file) { alert('请先上传图片'); return; }
+                formData = new FormData();
+                formData.append('file', file);
+                formData.append('text', document.getElementById('watermark-text').value);
+                formData.append('position', document.getElementById('watermark-position').value);
+                formData.append('opacity', document.getElementById('watermark-opacity').value / 100);
+                formData.append('font_size', document.getElementById('watermark-fontsize').value);
+                formData.append('color', document.getElementById('watermark-color').value);
+                formData.append('rotation', parseInt(document.getElementById('watermark-rotation').value) || 0);
+                formData.append('shadow', document.getElementById('watermark-shadow').value);
+                formData.append('bg', document.getElementById('watermark-bg').value || 'none');
+                formData.append('tile', document.getElementById('watermark-tile').value || 'none');
+                formData.append('spacing', parseInt(document.getElementById('watermark-spacing').value) || 100);
+                url = '/api/add-watermark';
+            } else if (type === 'add-logo') {
+                file = currentFiles['add-logo'];
+                const logoFile = document.getElementById('logo-file').files[0];
+                if (!file) { alert('请先上传原图'); return; }
+                if (!logoFile) { alert('请上传 Logo 图片'); return; }
+                formData = new FormData();
+                formData.append('file', file);
+                formData.append('logo', logoFile);
+                formData.append('position', document.getElementById('logo-position').value);
+                formData.append('scale', document.getElementById('logo-scale').value / 100);
+                formData.append('opacity', document.getElementById('logo-opacity').value / 100);
+                formData.append('rotation', parseInt(document.getElementById('logo-rotation').value) || 0);
+                formData.append('tile', document.getElementById('logo-tile').value || 'none');
+                formData.append('spacing', parseInt(document.getElementById('logo-spacing').value) || 100);
+                url = '/api/add-logo-watermark';
+            } else if (type === 'remove') {
+                file = currentFiles['remove'];
+                if (!file) { alert('请先上传图片'); return; }
+                formData = new FormData();
+                formData.append('file', file);
+                formData.append('mask_type', 'auto');
+                url = '/api/remove-watermark';
+            }
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '处理中...';
+            btn.disabled = true;
+            try {
+                const response = await fetch(API_BASE + url, { method: 'POST', body: formData });
+                if (!response.ok) { const error = await response.json(); throw new Error(error.detail || '处理失败'); }
+                const blob = await response.blob();
+                const downloadUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = 'watermarked_' + file.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(downloadUrl);
+                alert('处理完成！');
+            } catch (error) {
+                alert('处理失败：' + error.message);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', () => { zone.classList.remove('dragover'); });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                const input = zone.querySelector('input[type=file]');
+                input.files = e.dataTransfer.files;
+                input.dispatchEvent(new Event('change'));
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', setupLivePreview);
+    </script>
+</body>
+</html>
