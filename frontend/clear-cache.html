@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>清除语言缓存</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-md">
+        <h1 class="text-2xl font-bold mb-4">🗑️ 清除语言缓存</h1>
+        <p class="text-gray-600 mb-4">当前保存的语言设置：<strong id="current-lang">检测中...</strong></p>
+        <button onclick="clearLang()" class="w-full bg-red-500 text-white py-3 px-4 rounded hover:bg-red-600 mb-2">清除缓存并刷新</button>
+        <button onclick="setLang('zh')" class="w-full bg-blue-500 text-white py-3 px-4 rounded hover:bg-blue-600 mb-2">强制设置为中文</button>
+        <button onclick="setLang('en')" class="w-full bg-green-500 text-white py-3 px-4 rounded hover:bg-green-600 mb-2">强制设置为英文</button>
+        <a href="/" class="block text-center text-gray-500 hover:text-gray-700 mt-4">返回首页</a>
+    </div>
+
+    <script>
+        // 显示当前语言设置
+        const savedLang = localStorage.getItem('watermark_lang');
+        document.getElementById('current-lang').textContent = savedLang || '无 (使用浏览器默认)';
+
+        function clearLang() {
+            localStorage.removeItem('watermark_lang');
+            alert('缓存已清除！将使用浏览器默认语言。');
+            window.location.href = '/';
+        }
+
+        function setLang(lang) {
+            localStorage.setItem('watermark_lang', lang);
+            alert('已设置为 ' + (lang === 'zh' ? '中文' : 'English'));
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

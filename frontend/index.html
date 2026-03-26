@@ -21,7 +21,10 @@
                     <span class="text-2xl">💧</span>
                     <h1 class="ml-2 text-xl font-bold text-gray-900">Watermark Tool</h1>
                 </div>
-                <div class="text-sm text-gray-500">在线水印处理 · 内存处理 · 隐私安全</div>
+                <div class="flex items-center space-x-4">
+                    <button id="lang-switcher" onclick="i18n.toggleLang()" class="text-sm px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 transition" data-lang="en">English</button>
+                    <span class="text-sm text-gray-500" data-i18n="nav.subtitle">在线水印处理 · 内存处理 · 隐私安全</span>
+                </div>
             </div>
         </div>
     </nav>
@@ -33,8 +36,8 @@
             <div class="flex">
                 <div class="flex-shrink-0"><span class="text-xl">⚠️</span></div>
                 <div class="ml-3">
-                    <h3 class="text-sm font-medium text-yellow-800">法律声明</h3>
-                    <p class="text-sm text-yellow-700 mt-1">本工具仅供学习和个人使用。请勿用于移除他人拥有版权的水印。</p>
+                    <h3 class="text-sm font-medium text-yellow-800" data-i18n="legal.title">法律声明</h3>
+                    <p class="text-sm text-yellow-700 mt-1" data-i18n="legal.text">本工具仅供学习和个人使用。请勿用于移除他人拥有版权的水印。</p>
                 </div>
             </div>
         </div>
@@ -43,9 +46,9 @@
         <div class="mb-8">
             <div class="border-b border-gray-200">
                 <nav class="-mb-px flex space-x-8">
-                    <button onclick="switchTab('add-text')" id="tab-add-text" class="tab-btn border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">添加文字水印</button>
-                    <button onclick="switchTab('add-logo')" id="tab-add-logo" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">添加 Logo 水印</button>
-                    <button onclick="switchTab('remove')" id="tab-remove" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">移除水印</button>
+                    <button onclick="switchTab('add-text')" id="tab-add-text" class="tab-btn border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-i18n="tab.addText">添加文字水印</button>
+                    <button onclick="switchTab('add-logo')" id="tab-add-logo" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-i18n="tab.addLogo">添加 Logo 水印</button>
+                    <button onclick="switchTab('remove')" id="tab-remove" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-i18n="tab.remove">移除水印</button>
                 </nav>
             </div>
         </div>
@@ -53,7 +56,7 @@
         <!-- 添加文字水印 -->
         <div id="panel-add-text" class="tab-panel">
             <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-4">添加文字水印</h2>
+                <h2 class="text-lg font-medium text-gray-900 mb-4" data-i18n="textWatermark.title">添加文字水印</h2>
                 
                 <!-- 上传区域 -->
                 <div class="drop-zone border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer" onclick="document.getElementById('file-add-text').click()">
@@ -61,24 +64,24 @@
                     <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                         <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
-                    <p class="mt-1 text-sm text-gray-600">点击或拖拽上传图片</p>
-                    <p class="text-xs text-gray-500">支持 JPG, PNG, WebP，最大 10MB</p>
+                    <p class="mt-1 text-sm text-gray-600" data-i18n="common.clickOrDrag">点击或拖拽上传图片</p>
+                    <p class="text-xs text-gray-500" data-i18n="common.supportedFormats">支持 JPG, PNG, WebP，最大 10MB</p>
                 </div>
 
                 <!-- 预览区域 -->
                 <div id="preview-container-add-text" class="mt-4 hidden">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <h3 class="text-sm font-medium text-gray-700 mb-2">原图</h3>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2" data-i18n="common.original">原图</h3>
                             <div class="preview-container border rounded-lg overflow-hidden">
                                 <img id="preview-original-add-text" src="" alt="原图" class="w-full">
                             </div>
                         </div>
                         <div>
-                            <h3 class="text-sm font-medium text-gray-700 mb-2">效果预览</h3>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2" data-i18n="common.preview">效果预览</h3>
                             <div class="preview-container border rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                                 <img id="preview-result-add-text" src="" alt="效果预览" class="w-full hidden">
-                                <span id="preview-placeholder-add-text" class="text-gray-400 text-sm">调整后实时预览</span>
+                                <span id="preview-placeholder-add-text" class="text-gray-400 text-sm" data-i18n="common.realtimePreview">调整后实时预览</span>
                             </div>
                         </div>
                     </div>
@@ -86,15 +89,15 @@
 
                 <!-- 参数设置 -->
                 <div class="mt-6">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-3">基础设置</h3>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="common.basicSettings">基础设置</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div class="md:col-span-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">水印文字</label>
-                            <input type="text" id="watermark-text" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" value="水印">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="textWatermark.label">水印文字</label>
+                            <input type="text" id="watermark-text" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" value="水印" data-i18n-placeholder="textWatermark.placeholder">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">位置</label>
-                            <select id="watermark-position" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="textWatermark.position">位置</label>
+                            <select id="watermark-position" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" data-i18n-options="textWatermark.position">
                                 <option value="bottom-right">右下角</option>
                                 <option value="bottom-left">左下角</option>
                                 <option value="top-right">右上角</option>
@@ -103,14 +106,14 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">文字颜色</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="textWatermark.color">文字颜色</label>
                             <div class="space-y-2">
                                 <div class="flex items-center space-x-2">
                                     <input type="color" id="watermark-color" value="#000000" class="h-10 w-16 border-gray-300 rounded-md cursor-pointer">
                                     <span id="color-value" class="text-sm text-gray-600">#000000</span>
                                 </div>
                                 <div class="flex space-x-2">
-                                    <button onclick="setColor('#ffffff')" class="w-6 h-6 rounded border border-gray-300 bg-white" title="白色"></button>
+                                    <button onclick="setColor('#ffffff')" class="w-6 h-6 rounded border border-gray-300 bg-white" title="白色" data-i18n-title="textWatermark.shadow.light"></button>
                                     <button onclick="setColor('#000000')" class="w-6 h-6 rounded border border-gray-300 bg-black" title="黑色"></button>
                                     <button onclick="setColor('#ff0000')" class="w-6 h-6 rounded border border-gray-300 bg-red-500" title="红色"></button>
                                     <button onclick="setColor('#00ff00')" class="w-6 h-6 rounded border border-gray-300 bg-green-500" title="绿色"></button>
@@ -119,24 +122,24 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">透明度：<span id="opacity-value">80%</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2"><span data-i18n="textWatermark.opacity">透明度</span>: <span id="opacity-value">80%</span></label>
                             <input type="range" id="watermark-opacity" min="0" max="100" value="80" class="w-full" oninput="document.getElementById('opacity-value').textContent = this.value + '%'">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">字体大小：<span id="fontsize-value">16</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2"><span data-i18n="textWatermark.fontSize">字体大小</span>: <span id="fontsize-value">16</span></label>
                             <input type="range" id="watermark-fontsize" min="12" max="200" value="16" class="w-full" oninput="document.getElementById('fontsize-value').textContent = this.value">
                         </div>
                     </div>
                     
-                    <h3 class="text-sm font-semibold text-gray-700 mb-3 mt-6">高级设置</h3>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3 mt-6" data-i18n="common.advancedSettings">高级设置</h3>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">旋转角度：<span id="rotation-value">0°</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2"><span data-i18n="textWatermark.rotation">旋转角度</span>: <span id="rotation-value">0°</span></label>
                             <input type="range" id="watermark-rotation" min="-180" max="180" value="0" class="w-full" oninput="document.getElementById('rotation-value').textContent = this.value + '°'">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">阴影</label>
-                            <select id="watermark-shadow" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="textWatermark.shadow">阴影</label>
+                            <select id="watermark-shadow" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" data-i18n-options="textWatermark.shadow">
                                 <option value="none">无</option>
                                 <option value="light">轻微</option>
                                 <option value="medium">中等</option>
@@ -144,73 +147,73 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">背景</label>
-                            <select id="watermark-bg" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="textWatermark.bg">背景</label>
+                            <select id="watermark-bg" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" data-i18n-options="textWatermark.bg">
                                 <option value="none" selected>无</option>
                                 <option value="solid">纯色</option>
                                 <option value="blur">模糊</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">平铺模式</label>
-                            <select id="watermark-tile" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="textWatermark.tile">平铺模式</label>
+                            <select id="watermark-tile" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" data-i18n-options="textWatermark.tile">
                                 <option value="none" selected>单个</option>
                                 <option value="tile">网格平铺</option>
                                 <option value="diagonal">对角线</option>
                             </select>
                         </div>
                         <div id="tile-spacing-control" class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">平铺间隙：<span id="spacing-value">100</span>px</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2"><span data-i18n="textWatermark.spacing">平铺间隙</span>: <span id="spacing-value">100</span>px</label>
                             <input type="range" id="watermark-spacing" min="0" max="300" value="100" class="w-full" oninput="document.getElementById('spacing-value').textContent = this.value">
                         </div>
                     </div>
                 </div>
 
-                <button onclick="processImage('add-text')" class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">处理并下载</button>
+                <button onclick="processImage('add-text')" class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" data-i18n="common.processAndDownload">处理并下载</button>
             </div>
         </div>
 
         <!-- 添加 Logo 水印 -->
         <div id="panel-add-logo" class="tab-panel hidden">
             <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-4">添加 Logo 水印</h2>
+                <h2 class="text-lg font-medium text-gray-900 mb-4" data-i18n="logoWatermark.title">添加 Logo 水印</h2>
                 
                 <div class="drop-zone border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer" onclick="document.getElementById('file-add-logo').click()">
                     <input type="file" id="file-add-logo" class="hidden" accept="image/*" onchange="handleFileSelect(this, 'add-logo')">
                     <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                         <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
-                    <p class="mt-1 text-sm text-gray-600">上传原图</p>
+                    <p class="mt-1 text-sm text-gray-600" data-i18n="logoWatermark.uploadOriginal">上传原图</p>
                 </div>
                 <div id="preview-container-add-logo" class="mt-4 hidden">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <h3 class="text-sm font-medium text-gray-700 mb-2">原图</h3>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2" data-i18n="common.original">原图</h3>
                             <div class="preview-container border rounded-lg overflow-hidden">
                                 <img id="preview-original-add-logo" src="" alt="原图" class="w-full">
                             </div>
                         </div>
                         <div>
-                            <h3 class="text-sm font-medium text-gray-700 mb-2">效果预览</h3>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2" data-i18n="common.preview">效果预览</h3>
                             <div class="preview-container border rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                                 <img id="preview-result-add-logo" src="" alt="效果预览" class="w-full hidden">
-                                <span id="preview-placeholder-add-logo" class="text-gray-400 text-sm">调整后实时预览</span>
+                                <span id="preview-placeholder-add-logo" class="text-gray-400 text-sm" data-i18n="common.realtimePreview">调整后实时预览</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">上传 Logo（PNG 透明背景）</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="logoWatermark.uploadLogo">上传 Logo（PNG 透明背景）</label>
                     <input type="file" id="logo-file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/png">
                 </div>
 
                 <div class="mt-6">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-3">基础设置</h3>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="common.basicSettings">基础设置</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">位置</label>
-                            <select id="logo-position" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="textWatermark.position">位置</label>
+                            <select id="logo-position" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" data-i18n-options="textWatermark.position">
                                 <option value="bottom-right">右下角</option>
                                 <option value="bottom-left">左下角</option>
                                 <option value="top-right">右上角</option>
@@ -219,47 +222,47 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Logo 大小：<span id="logo-scale-value">20%</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2"><span data-i18n="logoWatermark.scale">Logo 大小</span>: <span id="logo-scale-value">20%</span></label>
                             <input type="range" id="logo-scale" min="5" max="50" value="20" class="w-full" oninput="document.getElementById('logo-scale-value').textContent = this.value + '%'">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">透明度：<span id="logo-opacity-value">80%</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2"><span data-i18n="logoWatermark.opacity">透明度</span>: <span id="logo-opacity-value">80%</span></label>
                             <input type="range" id="logo-opacity" min="0" max="100" value="80" class="w-full" oninput="document.getElementById('logo-opacity-value').textContent = this.value + '%'">
                         </div>
                     </div>
                     
-                    <h3 class="text-sm font-semibold text-gray-700 mb-3">高级设置</h3>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="common.advancedSettings">高级设置</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">旋转角度：<span id="logo-rotation-value">0°</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2"><span data-i18n="logoWatermark.rotation">旋转角度</span>: <span id="logo-rotation-value">0°</span></label>
                             <input type="range" id="logo-rotation" min="-180" max="180" value="0" class="w-full" oninput="document.getElementById('logo-rotation-value').textContent = this.value + '°'">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">平铺模式</label>
-                            <select id="logo-tile" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="logoWatermark.tile">平铺模式</label>
+                            <select id="logo-tile" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" data-i18n-options="textWatermark.tile">
                                 <option value="none" selected>单个</option>
                                 <option value="tile">网格平铺</option>
                                 <option value="diagonal">对角线</option>
                             </select>
                         </div>
                         <div id="logo-spacing-control" class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">平铺间隙：<span id="logo-spacing-value">100</span>px</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2"><span data-i18n="logoWatermark.spacing">平铺间隙</span>: <span id="logo-spacing-value">100</span>px</label>
                             <input type="range" id="logo-spacing" min="0" max="300" value="100" class="w-full" oninput="document.getElementById('logo-spacing-value').textContent = this.value">
                         </div>
                     </div>
                 </div>
 
-                <button onclick="processImage('add-logo')" class="mt-6 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">处理并下载</button>
+                <button onclick="processImage('add-logo')" class="mt-6 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" data-i18n="common.processAndDownload">处理并下载</button>
             </div>
         </div>
 
         <!-- 移除水印 -->
         <div id="panel-remove" class="tab-panel hidden">
             <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-4">移除水印（自动检测）</h2>
+                <h2 class="text-lg font-medium text-gray-900 mb-4" data-i18n="removeWatermark.title">移除水印（自动检测）</h2>
                 
                 <div class="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
-                    <p class="text-sm text-green-800">✨ 采用多策略融合算法，自动检测并移除水印，支持实时预览。</p>
+                    <p class="text-sm text-green-800" data-i18n="removeWatermark.description">✨ 采用多策略融合算法，自动检测并移除水印，支持实时预览。</p>
                 </div>
 
                 <div class="drop-zone border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer" onclick="document.getElementById('file-remove').click()">
@@ -267,44 +270,55 @@
                     <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                         <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
-                    <p class="mt-1 text-sm text-gray-600">点击或拖拽上传图片</p>
-                    <p class="text-xs text-gray-500">支持 JPG, PNG, WebP，最大 10MB</p>
+                    <p class="mt-1 text-sm text-gray-600" data-i18n="common.clickOrDrag">点击或拖拽上传图片</p>
+                    <p class="text-xs text-gray-500" data-i18n="common.supportedFormats">支持 JPG, PNG, WebP，最大 10MB</p>
                 </div>
 
                 <!-- 预览区域 -->
                 <div id="preview-container-remove" class="mt-4 hidden">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <h3 class="text-sm font-medium text-gray-700 mb-2">原图</h3>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2" data-i18n="common.original">原图</h3>
                             <div class="preview-container border rounded-lg overflow-hidden">
                                 <img id="preview-original-remove" src="" alt="原图" class="w-full">
                             </div>
                         </div>
                         <div>
-                            <h3 class="text-sm font-medium text-gray-700 mb-2">去除效果预览</h3>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2" data-i18n="common.preview">去除效果预览</h3>
                             <div class="preview-container border rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                                 <img id="preview-result-remove" src="" alt="效果预览" class="w-full hidden">
-                                <span id="preview-placeholder-remove" class="text-gray-400 text-sm">处理中...</span>
+                                <span id="preview-placeholder-remove" class="text-gray-400 text-sm" data-i18n="common.processing">处理中...</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <button onclick="processImage('remove')" class="mt-6 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">处理并下载</button>
+                <button onclick="processImage('remove')" class="mt-6 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" data-i18n="common.processAndDownload">处理并下载</button>
             </div>
         </div>
     </main>
 
     <footer class="bg-white border-t mt-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <p class="text-center text-sm text-gray-500">💧 Watermark Tool v1.0 · 图片内存处理，不存储到服务器</p>
+            <p class="text-center text-sm text-gray-500" data-i18n="footer.text">💧 Watermark Tool v1.0 · 图片内存处理，不存储到服务器</p>
         </div>
     </footer>
 
+    <!-- 国际化支持 -->
+    <script src="js/i18n.js?v=20260323234500"></script>
+    
     <script>
-        const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'http://' + window.location.hostname + ':8000';
+        // API 地址：自动检测，支持同域名或独立端口
+        const API_BASE = window.location.port === '8080' || window.location.port === '' 
+            ? (window.location.protocol + '//' + window.location.hostname + ':8000')
+            : (window.location.protocol + '//' + window.location.hostname + ':8000');
         let currentFiles = {};
         let previewTimeout = null;
+
+        // 获取当前语言的提示消息
+        function getMsg(key) {
+            return i18n.t('msg.' + key);
+        }
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-panel').forEach(el => el.classList.add('hidden'));
@@ -322,7 +336,7 @@
             const file = input.files[0];
             if (!file) return;
             if (file.size > 10 * 1024 * 1024) {
-                alert('图片大小超过 10MB 限制');
+                alert(getMsg('fileTooLarge'));
                 return;
             }
             currentFiles[key] = file;
@@ -498,7 +512,7 @@
             let file, formData, url;
             if (type === 'add-text') {
                 file = currentFiles['add-text'];
-                if (!file) { alert('请先上传图片'); return; }
+                if (!file) { alert(getMsg('pleaseUploadImage')); return; }
                 formData = new FormData();
                 formData.append('file', file);
                 formData.append('text', document.getElementById('watermark-text').value);
@@ -515,8 +529,8 @@
             } else if (type === 'add-logo') {
                 file = currentFiles['add-logo'];
                 const logoFile = document.getElementById('logo-file').files[0];
-                if (!file) { alert('请先上传原图'); return; }
-                if (!logoFile) { alert('请上传 Logo 图片'); return; }
+                if (!file) { alert(getMsg('pleaseUploadOriginal')); return; }
+                if (!logoFile) { alert(getMsg('pleaseUploadLogo')); return; }
                 formData = new FormData();
                 formData.append('file', file);
                 formData.append('logo', logoFile);
@@ -529,7 +543,7 @@
                 url = '/api/add-logo-watermark';
             } else if (type === 'remove') {
                 file = currentFiles['remove'];
-                if (!file) { alert('请先上传图片'); return; }
+                if (!file) { alert(getMsg('pleaseUploadImage')); return; }
                 formData = new FormData();
                 formData.append('file', file);
                 formData.append('mask_type', 'auto');
@@ -551,9 +565,9 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(downloadUrl);
-                alert('处理完成！');
+                alert(getMsg('processSuccess'));
             } catch (error) {
-                alert('处理失败：' + error.message);
+                alert(getMsg('processFailed') + error.message);
             } finally {
                 btn.textContent = originalText;
                 btn.disabled = false;

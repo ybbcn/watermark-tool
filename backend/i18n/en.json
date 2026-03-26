@@ -1,0 +1,22 @@
+{
+  "api_name": "💧 Watermark Tool API",
+  "api_description": "Online watermark processing tool - Add and remove watermarks",
+  "endpoints": {
+    "add_watermark": "POST /api/add-watermark",
+    "add_logo_watermark": "POST /api/add-logo-watermark",
+    "remove_watermark": "POST /api/remove-watermark"
+  },
+  "errors": {
+    "file_too_large": "Image file size exceeds 10MB limit",
+    "unsupported_format": "Unsupported image format: {format}. Supported: {allowed}",
+    "image_load_failed": "Failed to load image: {error}",
+    "processing_failed": "Processing failed: {error}",
+    "logo_load_failed": "Failed to load logo: {error}",
+    "invalid_mode": "MVP version only supports 'auto' mode. 'manual' mode will be available in future releases"
+  },
+  "validation": {
+    "file_required": "Image file is required",
+    "text_required": "Watermark text is required",
+    "logo_required": "Logo image is required"
+  }
+}

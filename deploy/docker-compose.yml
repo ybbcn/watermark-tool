@@ -12,6 +12,9 @@ services:
       - ../backend:/app/backend
     environment:
       - PYTHONUNBUFFERED=1
+      # 语言设置：zh (中文) 或 en (English)
+      # 国内部署用 zh，国外部署用 en
+      - LANGUAGE=${LANGUAGE:-zh}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

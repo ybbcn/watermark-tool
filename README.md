@@ -2,6 +2,10 @@
 
 在线水印处理工具 - 添加和移除水印，内存处理模式，保护用户隐私。
 
+> 🌍 **支持中英文双语** / **Supports Chinese & English**
+> 
+> 查看多语言部署指南：[MULTILINGUAL.md](MULTILINGUAL.md)
+
 ## 🎯 产品定位
 
 让每个人都能简单、快速、安全地处理图片水印。
@@ -15,6 +19,7 @@
 | 移除水印 | 自动检测高亮区域（白色水印） | ✅ |
 | 图片预览 | 上传后实时预览 | ✅ |
 | 结果下载 | 处理完成后自动下载 | ✅ |
+| **多语言支持** | 中英文自动切换 | ✅ |
 
 ## 🛠️ 技术栈
 
@@ -55,7 +60,13 @@ docker-compose up -d
 
 # 生产模式（后端 + Nginx）
 docker-compose --profile production up -d
+
+# 设置语言 (可选)
+export LANGUAGE=en  # 或 zh (默认)
+docker-compose up -d
 ```
+
+📖 **多语言部署**: 查看 [MULTILINGUAL.md](MULTILINGUAL.md) 了解完整的多语言配置指南。
 
 ### 腾讯云服务器部署
 

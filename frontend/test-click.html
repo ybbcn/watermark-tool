@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>测试语言切换</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-10">
+<h1 class="text-2xl font-bold mb-4" data-i18n="tab.addText">添加文字水印</h1>
+<button id="lang-switcher" onclick="i18n.toggleLang()" class="px-4 py-2 bg-blue-500 text-white rounded">English</button>
+<p class="mt-4">当前语言：<span id="current-lang">-</span></p>
+<p>翻译测试：<span id="test-translation">-</span></p>
+
+<script src="js/i18n.js"></script>
+<script>
+// 页面加载后显示状态
+window.addEventListener('load', function() {
+    document.getElementById('current-lang').textContent = i18n.currentLang;
+    document.getElementById('test-translation').textContent = i18n.t('tab.addText');
+    
+    // 监听语言切换
+    const originalToggle = i18n.toggleLang;
+    i18n.toggleLang = function() {
+        originalToggle.call(this);
+        document.getElementById('current-lang').textContent = i18n.currentLang;
+        document.getElementById('test-translation').textContent = i18n.t('tab.addText');
+        document.getElementById('lang-switcher').textContent = i18n.currentLang === 'zh' ? 'English' : '中文';
+    };
+});
+</script>
+</body>
+</html>

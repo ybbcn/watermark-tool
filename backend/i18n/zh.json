@@ -1,0 +1,22 @@
+{
+  "api_name": "💧 Watermark Tool API",
+  "api_description": "在线水印处理工具 - 添加和移除水印",
+  "endpoints": {
+    "add_watermark": "POST /api/add-watermark",
+    "add_logo_watermark": "POST /api/add-logo-watermark",
+    "remove_watermark": "POST /api/remove-watermark"
+  },
+  "errors": {
+    "file_too_large": "图片大小超过 10MB 限制",
+    "unsupported_format": "不支持的图片格式：{format}。支持：{allowed}",
+    "image_load_failed": "图片加载失败：{error}",
+    "processing_failed": "处理失败：{error}",
+    "logo_load_failed": "Logo 加载失败：{error}",
+    "invalid_mode": "MVP 版本仅支持 auto 模式，manual 模式将在后续版本实现"
+  },
+  "validation": {
+    "file_required": "原图文件为必填项",
+    "text_required": "水印文字为必填项",
+    "logo_required": "Logo 图片为必填项"
+  }
+}
