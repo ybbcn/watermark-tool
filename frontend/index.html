@@ -308,10 +308,10 @@
     <script src="js/i18n.js?v=20260323234500"></script>
     
     <script>
-        // API 地址：自动检测，支持同域名或独立端口
-        const API_BASE = window.location.port === '8080' || window.location.port === '' 
+        // API 地址：本地开发用 localhost:8000，部署时用腾讯云公网 IP
+        const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.endsWith('.local'))
             ? (window.location.protocol + '//' + window.location.hostname + ':8000')
-            : (window.location.protocol + '//' + window.location.hostname + ':8000');
+            : 'http://43.136.128.130:8000';
         let currentFiles = {};
         let previewTimeout = null;
 
