@@ -1,0 +1,14 @@
+name = "watermark-worker"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[observability]
+enabled = true
+
+# Account ID - fill in with your Cloudflare account ID
+# account_id = "your-account-id"
+
+# 如果需要持久化 KV 存储，可以取消注释
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "your-kv-namespace-id"
