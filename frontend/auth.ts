@@ -1,7 +1,9 @@
 import NextAuth from "next-auth";
-import GitHub from "next-auth/providers/github";
+import { D1Adapter } from "@auth/d1-adapter";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: D1Adapter(process.env.DB as any),
+  session: { strategy: "database" },
   providers: [
     {
       id: "google",
@@ -23,7 +25,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     },
   ],
-  session: { strategy: "database" },
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",

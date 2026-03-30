@@ -12,8 +12,6 @@ const nextConfig = {
       },
     ],
   },
-  // Cloudflare Pages 使用
-  output: "standalone",
 };
 
 module.exports = nextConfig;
