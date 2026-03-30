@@ -1,28 +1,24 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-env/
-ENV/
-*.egg-info/
-dist/
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
 build/
 
-# Test files
-test_*.py
+# Cloudflare
+.wrangler/
+dev-dist/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
+# System
 .DS_Store
-Thumbs.db
-
-# Logs
 *.log
+
+# Environment
+.env
+.env.local
+
+# Backup
+frontend_backup/
+backend/__pycache__/
+backend/i18n/__pycache__/

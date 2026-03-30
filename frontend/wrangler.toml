@@ -1,10 +1,6 @@
-name = "watermark-worker"
-main = "src/index.js"
+name = "watermark-tool-pages"
 compatibility_date = "2024-01-01"
-
-routes = [
-  { pattern = "ybbtool.com/auth/*", zone_name = "ybbtool.com" }
-]
+pages_build_output_dir = ".next"
 
 # D1 数据库 binding
 [[d1_databases]]
@@ -15,4 +11,3 @@ database_id = "7607e1d1-9605-4588-a486-9e7da2cdc749"
 [vars]
 GOOGLE_CLIENT_ID = "your_google_client_id.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET = "your_google_client_secret"
-REDIRECT_URI = "https://ybbtool.com/auth/google/callback"
