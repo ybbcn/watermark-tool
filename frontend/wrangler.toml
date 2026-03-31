@@ -3,6 +3,10 @@ compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".next"
 
+# 自定义构建命令，构建后删除缓存
+[build]
+command = "npm run build && rm -rf .next/cache"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "watermark-tool-db"
