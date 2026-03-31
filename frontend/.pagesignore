@@ -1,0 +1,7 @@
+# Next.js cache
+.next/cache/**
+.next/cache
+
+# Build artifacts we don't need
+.next/types/**
+.next/trace
