@@ -1,8 +1,8 @@
-name = "watermark-tool-pages"
+name = "watermark-tool"
 compatibility_date = "2024-01-01"
-pages_build_output_dir = ".next"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
 
-# D1 数据库 binding
 [[d1_databases]]
 binding = "DB"
 database_name = "watermark-tool-db"

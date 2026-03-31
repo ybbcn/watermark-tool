@@ -9,6 +9,8 @@ build/
 # Cloudflare
 .wrangler/
 dev-dist/
+.vercel/
+frontend/.vercel/
 
 # System
 .DS_Store

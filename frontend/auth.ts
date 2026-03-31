@@ -1,9 +1,8 @@
 import NextAuth from "next-auth";
-import { D1Adapter } from "@auth/d1-adapter";
 
+// WITHOUT D1 adapter - just test providers work
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: D1Adapter(process.env.DB as any),
-  session: { strategy: "database" },
+  session: { strategy: "jwt" },
   providers: [
     {
       id: "google",
@@ -28,13 +27,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",
-  },
-  callbacks: {
-    async session({ session, user }: { session: any; user: any }) {
-      if (session.user) {
-        session.user.id = user.id;
-      }
-      return session;
-    },
   },
 });
