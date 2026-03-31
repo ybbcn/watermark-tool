@@ -11,13 +11,7 @@ const nextConfig = {
         hostname: "*.googleusercontent.com",
       },
     ],
-    // 静态导出需要禁用图片优化
-    unoptimized: true,
   },
-  // 静态导出
-  output: 'export',
-  // 关闭缓存生成
-  cache: false,
 };
 
 module.exports = nextConfig;

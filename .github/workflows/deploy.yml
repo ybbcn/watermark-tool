@@ -23,18 +23,21 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build (Static Export)
+      - name: Build with Next.js
         run: npm run build
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
 
+      - name: Build for Cloudflare Pages
+        run: npx @cloudflare/next-on-pages
+
       - name: Verify build output
         run: |
           echo "=== Output directory contents ==="
-          ls -la out/ || true
+          ls -la .vercel/output/static/ || true
           echo "=== Total size ==="
-          du -sh out/ || true
+          du -sh .vercel/output/static/ || true
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -42,5 +45,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: watermark-tool
-          directory: frontend/out
+          directory: frontend/.vercel/output/static
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
