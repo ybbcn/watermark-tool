@@ -8,6 +8,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,17 +23,18 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
+        run: npm install
 
       - name: Build
-        run: |
-          cd frontend
-          npm run build
+        run: npm run build
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+
+      - name: Verify build output
+        run: |
+          ls -la .vercel/output || true
+          ls -la .vercel/output/static || true
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -38,5 +42,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: watermark-tool
-          directory: frontend/.next
+          directory: frontend/.vercel/output/static
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
