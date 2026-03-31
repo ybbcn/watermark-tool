@@ -23,19 +23,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build
+      - name: Build (Static Export)
         run: npm run build
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
 
-      - name: Delete cache to reduce size
-        run: rm -rf frontend/.next/cache
-
       - name: Verify build output
         run: |
-          ls -la .next || true
-          du -sh .next/**/* 2>/dev/null || true
+          echo "=== Output directory contents ==="
+          ls -la out/ || true
+          echo "=== Total size ==="
+          du -sh out/ || true
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -43,5 +42,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: watermark-tool
-          directory: frontend/.next
+          directory: frontend/out
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
