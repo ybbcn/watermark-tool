@@ -12,12 +12,6 @@ const nextConfig = {
       },
     ],
   },
-  // 禁用 Turbopack 缓存以减少构建产物大小
-  experimental: {
-    turbo: {
-      disableFileSystemCache: true,
-    },
-  },
 };
 
 module.exports = nextConfig;
