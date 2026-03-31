@@ -29,10 +29,13 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
 
+      - name: Delete cache to reduce size
+        run: rm -rf frontend/.next/cache
+
       - name: Verify build output
         run: |
-          ls -la .vercel/output || true
-          ls -la .vercel/output/static || true
+          ls -la .next || true
+          du -sh .next/**/* 2>/dev/null || true
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -40,5 +43,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: watermark-tool
-          directory: frontend/.vercel/output/static
+          directory: frontend/.next
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
