@@ -40,11 +40,10 @@ jobs:
           du -sh .vercel/output/static/ || true
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v2
+        uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: watermark-tool
           directory: frontend/.vercel/output/static
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          wranglerVersion: '3'
