@@ -470,7 +470,7 @@ export default function Home() {
                   {preview && (
                     <div className="relative w-full h-full p-4 flex items-center justify-center">
                       <img 
-                        src={preview} 
+                        src={result || preview} 
                         alt="Preview" 
                         className="max-w-full max-h-full object-contain rounded-lg shadow-lg" 
                       />
