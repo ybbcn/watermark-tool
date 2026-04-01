@@ -29,7 +29,7 @@ export default function Home() {
   const [watermarkSettings, setWatermarkSettings] = useState<WatermarkSettings>({
     text: "水印",
     position: "bottom-right",
-    opacity: 1.0,  // 默认 100%
+    opacity: 1.0,
     scale: 0.25,
     fontSize: 48,
     color: "#FFFFFF",
@@ -123,455 +123,413 @@ export default function Home() {
   }, [result, file]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
       {/* 顶部导航 */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
+      <nav className="flex-shrink-0 bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200">
+        <div className="max-w-[1920px] mx-auto px-6">
+          <div className="flex justify-between h-14 items-center">
             <div className="flex items-center space-x-3">
               <span className="text-3xl">💧</span>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Watermark Tool</h1>
-                <p className="text-xs text-gray-500">在线水印处理工具 - 内存处理，隐私安全</p>
+                <h1 className="text-lg font-bold text-slate-900">Watermark Tool</h1>
+                <p className="text-xs text-slate-500">在线水印处理工具</p>
               </div>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* 主内容 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          {/* 左侧：设置面板 */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-6 space-y-6 sticky top-4">
-              {/* 操作选择 */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">选择操作</h3>
-                <div className="space-y-2">
+      {/* 主内容区 - 铺满剩余空间 */}
+      <main className="flex-1 overflow-hidden">
+        <div className="h-full max-w-[1920px] mx-auto px-6 py-4">
+          <div className="grid grid-cols-10 gap-4 h-full">
+            
+            {/* 左侧设置面板 - 30% */}
+            <div className="col-span-3 h-full">
+              <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-5 h-full overflow-y-auto">
+                <h2 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+                  <span className="w-1 h-5 bg-blue-500 rounded-full mr-2"></span>
+                  操作设置
+                </h2>
+                
+                {/* 操作选择 */}
+                <div className="space-y-2 mb-5">
                   <button
                     onClick={() => setOperation("add-text")}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition ${
+                    className={`w-full text-left px-4 py-2.5 rounded-xl transition-all ${
                       operation === "add-text"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                        ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md"
+                        : "bg-slate-50 text-slate-700 hover:bg-slate-100"
                     }`}
                   >
                     📝 添加文字水印
                   </button>
                   <button
                     onClick={() => setOperation("add-image")}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition ${
+                    className={`w-full text-left px-4 py-2.5 rounded-xl transition-all ${
                       operation === "add-image"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                        ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md"
+                        : "bg-slate-50 text-slate-700 hover:bg-slate-100"
                     }`}
                   >
                     🖼️ 添加图片水印
                   </button>
                 </div>
-              </div>
 
-              {/* 文字水印设置 */}
-              {operation === "add-text" && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">文字设置</h3>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      水印文字
-                    </label>
-                    <input
-                      type="text"
-                      value={watermarkSettings.text}
-                      onChange={(e) => setWatermarkSettings({ ...watermarkSettings, text: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="输入水印文字"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      效果模式
-                    </label>
-                    <div className="space-y-2">
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="effect"
-                          checked={!watermarkSettings.tiled && !watermarkSettings.diagonal}
-                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: false, diagonal: false })}
-                          className="text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">单个水印</span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="effect"
-                          checked={watermarkSettings.tiled}
-                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: true, diagonal: false })}
-                          className="text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">🔲 平铺效果</span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="effect"
-                          checked={watermarkSettings.diagonal}
-                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: false, diagonal: true })}
-                          className="text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">↗️ 对角线效果</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* 位置选择（仅单个水印模式） */}
-                  {!watermarkSettings.tiled && !watermarkSettings.diagonal && (
+                {/* 文字水印设置 */}
+                {operation === "add-text" && (
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        位置
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        水印文字
                       </label>
-                      <select
-                        value={watermarkSettings.position}
-                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, position: e.target.value as any })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="top-left">左上角</option>
-                        <option value="top-right">右上角</option>
-                        <option value="bottom-left">左下角</option>
-                        <option value="bottom-right">右下角</option>
-                        <option value="center">居中</option>
-                      </select>
+                      <input
+                        type="text"
+                        value={watermarkSettings.text}
+                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, text: e.target.value })}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        placeholder="输入水印文字"
+                      />
                     </div>
-                  )}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      不透明度：{Math.round(watermarkSettings.opacity * 100)}%
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.05"
-                      value={watermarkSettings.opacity}
-                      onChange={(e) => setWatermarkSettings({ ...watermarkSettings, opacity: parseFloat(e.target.value) })}
-                      className="w-full"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      字体大小：{watermarkSettings.fontSize}px
-                    </label>
-                    <input
-                      type="range"
-                      min="12"
-                      max="120"
-                      value={watermarkSettings.fontSize}
-                      onChange={(e) => setWatermarkSettings({ ...watermarkSettings, fontSize: parseInt(e.target.value) })}
-                      className="w-full"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      颜色
-                    </label>
-                    <input
-                      type="color"
-                      value={watermarkSettings.color}
-                      onChange={(e) => setWatermarkSettings({ ...watermarkSettings, color: e.target.value })}
-                      className="w-full h-10 rounded-lg cursor-pointer"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      旋转：{watermarkSettings.rotation}°
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="360"
-                      value={watermarkSettings.rotation}
-                      onChange={(e) => setWatermarkSettings({ ...watermarkSettings, rotation: parseInt(e.target.value) })}
-                      className="w-full"
-                    />
-                  </div>
-
-                  {(watermarkSettings.tiled || watermarkSettings.diagonal) && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        间距：{watermarkSettings.spacing}px
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        效果模式
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { key: "single", label: "单个水印", value: { tiled: false, diagonal: false } },
+                          { key: "tiled", label: "🔲 平铺效果", value: { tiled: true, diagonal: false } },
+                          { key: "diagonal", label: "↗️ 对角线", value: { tiled: false, diagonal: true } },
+                        ].map((opt) => (
+                          <label key={opt.key} className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-slate-50 transition">
+                            <input
+                              type="radio"
+                              name="effect"
+                              checked={opt.key === "single" ? !watermarkSettings.tiled && !watermarkSettings.diagonal : watermarkSettings[opt.key as keyof typeof opt.value]}
+                              onChange={() => setWatermarkSettings({ ...watermarkSettings, ...opt.value })}
+                              className="text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-slate-700">{opt.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {!watermarkSettings.tiled && !watermarkSettings.diagonal && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">位置</label>
+                        <select
+                          value={watermarkSettings.position}
+                          onChange={(e) => setWatermarkSettings({ ...watermarkSettings, position: e.target.value as any })}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                        >
+                          <option value="top-left">左上角</option>
+                          <option value="top-right">右上角</option>
+                          <option value="bottom-left">左下角</option>
+                          <option value="bottom-right">右下角</option>
+                          <option value="center">居中</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        不透明度：{Math.round(watermarkSettings.opacity * 100)}%
                       </label>
                       <input
                         type="range"
-                        min="20"
-                        max="300"
-                        value={watermarkSettings.spacing}
-                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, spacing: parseInt(e.target.value) })}
-                        className="w-full"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={watermarkSettings.opacity}
+                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, opacity: parseFloat(e.target.value) })}
+                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                       />
                     </div>
-                  )}
-                </div>
-              )}
 
-              {/* 图片水印设置 */}
-              {operation === "add-image" && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">图片水印设置</h3>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      上传水印图片
-                    </label>
-                    <input
-                      ref={watermarkInputRef}
-                      type="file"
-                      accept="image/png,image/jpeg"
-                      onChange={handleWatermarkImageChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                    {watermarkImage && (
-                      <div className="mt-2">
-                        <img src={watermarkImage.src} alt="Watermark" className="h-20 object-contain border rounded" />
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        字体大小：{watermarkSettings.fontSize}px
+                      </label>
+                      <input
+                        type="range"
+                        min="12"
+                        max="120"
+                        value={watermarkSettings.fontSize}
+                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, fontSize: parseInt(e.target.value) })}
+                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">颜色</label>
+                        <input
+                          type="color"
+                          value={watermarkSettings.color}
+                          onChange={(e) => setWatermarkSettings({ ...watermarkSettings, color: e.target.value })}
+                          className="w-full h-10 rounded-lg cursor-pointer border border-slate-300"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">旋转：{watermarkSettings.rotation}°</label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="360"
+                          value={watermarkSettings.rotation}
+                          onChange={(e) => setWatermarkSettings({ ...watermarkSettings, rotation: parseInt(e.target.value) })}
+                          className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2"
+                        />
+                      </div>
+                    </div>
+
+                    {(watermarkSettings.tiled || watermarkSettings.diagonal) && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                          间距：{watermarkSettings.spacing}px
+                        </label>
+                        <input
+                          type="range"
+                          min="20"
+                          max="300"
+                          value={watermarkSettings.spacing}
+                          onChange={(e) => setWatermarkSettings({ ...watermarkSettings, spacing: parseInt(e.target.value) })}
+                          className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                        />
                       </div>
                     )}
                   </div>
+                )}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      效果模式
-                    </label>
-                    <div className="space-y-2">
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="effect"
-                          checked={!watermarkSettings.tiled && !watermarkSettings.diagonal}
-                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: false, diagonal: false })}
-                          className="text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">单个水印</span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="effect"
-                          checked={watermarkSettings.tiled}
-                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: true, diagonal: false })}
-                          className="text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">🔲 平铺效果</span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="effect"
-                          checked={watermarkSettings.diagonal}
-                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: false, diagonal: true })}
-                          className="text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">↗️ 对角线效果</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* 位置选择（仅单个水印模式） */}
-                  {!watermarkSettings.tiled && !watermarkSettings.diagonal && (
+                {/* 图片水印设置 */}
+                {operation === "add-image" && (
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        位置
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        上传水印图片
                       </label>
-                      <select
-                        value={watermarkSettings.position}
-                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, position: e.target.value as any })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="top-left">左上角</option>
-                        <option value="top-right">右上角</option>
-                        <option value="bottom-left">左下角</option>
-                        <option value="bottom-right">右下角</option>
-                        <option value="center">居中</option>
-                      </select>
+                      <input
+                        ref={watermarkInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg"
+                        onChange={handleWatermarkImageChange}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                      />
+                      {watermarkImage && (
+                        <div className="mt-2 p-2 bg-slate-50 rounded-lg">
+                          <img src={watermarkImage.src} alt="Watermark" className="h-16 object-contain mx-auto" />
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      大小：{Math.round(watermarkSettings.scale * 100)}%
-                    </label>
-                    <input
-                      type="range"
-                      min="0.1"
-                      max="1"
-                      step="0.05"
-                      value={watermarkSettings.scale}
-                      onChange={(e) => setWatermarkSettings({ ...watermarkSettings, scale: parseFloat(e.target.value) })}
-                      className="w-full"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      不透明度：{Math.round(watermarkSettings.opacity * 100)}%
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.05"
-                      value={watermarkSettings.opacity}
-                      onChange={(e) => setWatermarkSettings({ ...watermarkSettings, opacity: parseFloat(e.target.value) })}
-                      className="w-full"
-                    />
-                  </div>
-
-                  {(watermarkSettings.tiled || watermarkSettings.diagonal) && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        间距：{watermarkSettings.spacing}px
+                      <label className="block text-sm font-medium text-slate-700 mb-2">效果模式</label>
+                      <div className="space-y-2">
+                        {[
+                          { key: "single", label: "单个水印", value: { tiled: false, diagonal: false } },
+                          { key: "tiled", label: "🔲 平铺效果", value: { tiled: true, diagonal: false } },
+                          { key: "diagonal", label: "↗️ 对角线", value: { tiled: false, diagonal: true } },
+                        ].map((opt) => (
+                          <label key={opt.key} className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-slate-50 transition">
+                            <input
+                              type="radio"
+                              name="effect"
+                              checked={opt.key === "single" ? !watermarkSettings.tiled && !watermarkSettings.diagonal : watermarkSettings[opt.key as keyof typeof opt.value]}
+                              onChange={() => setWatermarkSettings({ ...watermarkSettings, ...opt.value })}
+                              className="text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-slate-700">{opt.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {!watermarkSettings.tiled && !watermarkSettings.diagonal && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">位置</label>
+                        <select
+                          value={watermarkSettings.position}
+                          onChange={(e) => setWatermarkSettings({ ...watermarkSettings, position: e.target.value as any })}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                        >
+                          <option value="top-left">左上角</option>
+                          <option value="top-right">右上角</option>
+                          <option value="bottom-left">左下角</option>
+                          <option value="bottom-right">右下角</option>
+                          <option value="center">居中</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        大小：{Math.round(watermarkSettings.scale * 100)}%
                       </label>
                       <input
                         type="range"
-                        min="20"
-                        max="300"
-                        value={watermarkSettings.spacing}
-                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, spacing: parseInt(e.target.value) })}
-                        className="w-full"
+                        min="0.1"
+                        max="1"
+                        step="0.05"
+                        value={watermarkSettings.scale}
+                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, scale: parseFloat(e.target.value) })}
+                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                       />
                     </div>
-                  )}
-                </div>
-              )}
 
-              {/* 处理按钮 */}
-              <button
-                onClick={handleProcess}
-                disabled={!file || processing}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition shadow-lg"
-              >
-                {processing ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    处理中...
-                  </span>
-                ) : (
-                  "开始处理"
-                )}
-              </button>
-
-              {/* 错误提示 */}
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                  ⚠️ {error}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 右侧：预览区域 */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">图片预览</h3>
-              <div className="min-h-[400px]">
-              
-              {/* 上传区域 */}
-              {!preview && (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center cursor-pointer hover:border-blue-500 transition"
-                >
-                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <p className="mt-4 text-lg text-gray-600">点击或拖拽上传图片</p>
-                  <p className="mt-2 text-sm text-gray-500">支持 JPG, PNG, WebP 格式</p>
-                </div>
-              )}
-
-              {/* 图片预览 */}
-              {preview && (
-                <div className="space-y-4">
-                  <div className="relative">
-                    <img src={preview} alt="Preview" className="w-full h-auto rounded-lg shadow" />
-                    <button
-                      onClick={() => {
-                        setPreview(null);
-                        setFile(null);
-                        setResult(null);
-                        if (fileInputRef.current) fileInputRef.current.value = "";
-                      }}
-                      className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-lg hover:bg-red-50 transition"
-                    >
-                      <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        不透明度：{Math.round(watermarkSettings.opacity * 100)}%
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={watermarkSettings.opacity}
+                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, opacity: parseFloat(e.target.value) })}
+                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
                   </div>
+                )}
 
-                  {/* 处理结果 */}
-                  {result && (
-                    <div className="border-t pt-4">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-3">✅ 处理完成</h4>
-                      <img src={result} alt="Result" className="w-full h-auto rounded-lg shadow mb-4" />
+                {/* 处理按钮 */}
+                <button
+                  onClick={handleProcess}
+                  disabled={!file || processing}
+                  className="w-full mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  {processing ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      处理中...
+                    </span>
+                  ) : (
+                    "✨ 开始处理"
+                  )}
+                </button>
+
+                {error && (
+                  <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                    ⚠️ {error}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 右侧预览区域 - 70% */}
+            <div className="col-span-7 h-full">
+              <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-5 h-full flex flex-col">
+                <h2 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+                  <span className="w-1 h-5 bg-green-500 rounded-full mr-2"></span>
+                  图片预览
+                </h2>
+                
+                {/* 预览内容区 */}
+                <div className="flex-1 flex items-center justify-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden">
+                  {!preview && (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-center cursor-pointer p-12 hover:bg-slate-100 transition-all"
+                    >
+                      <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-4">
+                        <svg className="w-10 h-10 text-blue-600" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      <p className="text-lg font-medium text-slate-700">点击或拖拽上传图片</p>
+                      <p className="mt-2 text-sm text-slate-500">支持 JPG, PNG, WebP 格式</p>
+                    </div>
+                  )}
+
+                  {preview && (
+                    <div className="relative w-full h-full p-4">
+                      <img 
+                        src={preview} 
+                        alt="Preview" 
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-lg mx-auto" 
+                      />
                       <button
-                        onClick={handleDownload}
-                        className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition shadow-lg"
+                        onClick={() => {
+                          setPreview(null);
+                          setFile(null);
+                          setResult(null);
+                          if (fileInputRef.current) fileInputRef.current.value = "";
+                        }}
+                        className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-red-50 transition-all"
                       >
-                        📥 下载图片
+                        <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                       </button>
+
+                      {result && (
+                        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+                          <button
+                            onClick={handleDownload}
+                            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-8 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center"
+                          >
+                            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            📥 下载处理后的图片
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              </div>
-            </div>
-
-            {/* 功能说明 */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl shadow p-4">
-                <div className="text-2xl mb-2">🔒</div>
-                <h4 className="font-semibold text-gray-900">隐私安全</h4>
-                <p className="text-sm text-gray-600 mt-1">图片在浏览器处理，不上传服务器</p>
-              </div>
-              <div className="bg-white rounded-xl shadow p-4">
-                <div className="text-2xl mb-2">⚡</div>
-                <h4 className="font-semibold text-gray-900">快速处理</h4>
-                <p className="text-sm text-gray-600 mt-1">本地处理，无需等待上传下载</p>
-              </div>
-              <div className="bg-white rounded-xl shadow p-4">
-                <div className="text-2xl mb-2">🌍</div>
-                <h4 className="font-semibold text-gray-900">完全免费</h4>
-                <p className="text-sm text-gray-600 mt-1">无使用限制，无水印</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
               </div>
             </div>
           </div>
         </div>
       </main>
 
-      {/* 页脚 */}
-      <footer className="bg-white border-t mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-center text-sm text-gray-600">
-            💧 Watermark Tool - 在线水印处理工具 | 内存处理，隐私安全
-          </p>
+      {/* 底部功能说明 - 单独一行 */}
+      <footer className="flex-shrink-0 bg-white/80 backdrop-blur-md border-t border-slate-200">
+        <div className="max-w-[1920px] mx-auto px-6 py-3">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                <span className="text-xl">🔒</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-slate-800 text-sm">隐私安全</h4>
+                <p className="text-xs text-slate-500">图片在浏览器处理，不上传服务器</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                <span className="text-xl">⚡</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-slate-800 text-sm">快速处理</h4>
+                <p className="text-xs text-slate-500">本地处理，无需等待上传下载</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                <span className="text-xl">🌍</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-slate-800 text-sm">完全免费</h4>
+                <p className="text-xs text-slate-500">无使用限制，无水印</p>
+              </div>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
