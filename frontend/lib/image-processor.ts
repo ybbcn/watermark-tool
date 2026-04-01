@@ -12,6 +12,9 @@ export interface WatermarkOptions {
   fontSize?: number;
   color?: string;
   rotation?: number;
+  tiled?: boolean;        // 平铺效果
+  diagonal?: boolean;     // 对角线效果
+  spacing?: number;       // 平铺间距
 }
 
 export interface RemoveWatermarkOptions {
@@ -20,123 +23,46 @@ export interface RemoveWatermarkOptions {
 }
 
 /**
- * 添加文字水印
+ * 绘制单个文字水印
  */
-export function addTextWatermark(
-  canvas: HTMLCanvasElement,
+function drawTextWatermark(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
   options: WatermarkOptions
-): HTMLCanvasElement {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Cannot get canvas context');
-
-  // 绘制原始图片
-  const img = canvas.querySelector('img');
-  if (img) {
-    ctx.drawImage(img, 0, 0);
-  }
-
-  if (!options.text) return canvas;
-
-  // 配置文字样式
-  const fontSize = options.fontSize || Math.floor(canvas.width / 20);
+) {
+  const fontSize = options.fontSize || Math.floor(ctx.canvas.width / 20);
   ctx.font = `${fontSize}px Arial`;
-  ctx.fillStyle = options.color || 'rgba(255, 255, 255, 0.8)';
+  ctx.fillStyle = options.color || 'rgba(255, 255, 255, 1)';
   ctx.globalAlpha = options.opacity;
 
-  // 计算位置
-  const textMetrics = ctx.measureText(options.text);
-  const textWidth = textMetrics.width;
-  const textHeight = fontSize;
-  const padding = 20;
-
-  let x = 0, y = 0;
-  switch (options.position) {
-    case 'top-left':
-      x = padding;
-      y = textHeight + padding;
-      break;
-    case 'top-right':
-      x = canvas.width - textWidth - padding;
-      y = textHeight + padding;
-      break;
-    case 'bottom-left':
-      x = padding;
-      y = canvas.height - padding;
-      break;
-    case 'bottom-right':
-      x = canvas.width - textWidth - padding;
-      y = canvas.height - padding;
-      break;
-    case 'center':
-      x = (canvas.width - textWidth) / 2;
-      y = (canvas.height + textHeight) / 2;
-      break;
-  }
-
-  // 旋转
   if (options.rotation) {
     ctx.save();
-    ctx.translate(x + textWidth / 2, y - textHeight / 2);
+    ctx.translate(x, y);
     ctx.rotate((options.rotation * Math.PI) / 180);
-    ctx.fillText(options.text, -textWidth / 2, 0);
+    ctx.fillText(text, 0, 0);
     ctx.restore();
   } else {
-    ctx.fillText(options.text, x, y);
+    ctx.fillText(text, x, y);
   }
-
-  ctx.globalAlpha = 1.0;
-  return canvas;
 }
 
 /**
- * 添加图片水印（Logo）
+ * 绘制单个图片水印
  */
-export function addImageWatermark(
-  canvas: HTMLCanvasElement,
+function drawImageWatermark(
+  ctx: CanvasRenderingContext2D,
   watermark: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
   options: WatermarkOptions
-): HTMLCanvasElement {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Cannot get canvas context');
-
-  // 计算水印尺寸
-  const baseWidth = canvas.width / 4;
-  const scale = options.scale || 0.25;
-  const width = baseWidth * scale;
-  const ratio = watermark.height / watermark.width;
-  const height = width * ratio;
-
-  // 计算位置
-  const padding = 20;
-  let x = 0, y = 0;
-  switch (options.position) {
-    case 'top-left':
-      x = padding;
-      y = padding;
-      break;
-    case 'top-right':
-      x = canvas.width - width - padding;
-      y = padding;
-      break;
-    case 'bottom-left':
-      x = padding;
-      y = canvas.height - height - padding;
-      break;
-    case 'bottom-right':
-      x = canvas.width - width - padding;
-      y = canvas.height - height - padding;
-      break;
-    case 'center':
-      x = (canvas.width - width) / 2;
-      y = (canvas.height - height) / 2;
-      break;
-  }
-
-  // 保存状态
+) {
   ctx.save();
   ctx.globalAlpha = options.opacity;
 
-  // 旋转
   if (options.rotation) {
     ctx.translate(x + width / 2, y + height / 2);
     ctx.rotate((options.rotation * Math.PI) / 180);
@@ -146,78 +72,150 @@ export function addImageWatermark(
   }
 
   ctx.restore();
+}
+
+/**
+ * 添加文字水印（支持平铺和对角线）
+ */
+export function addTextWatermark(
+  canvas: HTMLCanvasElement,
+  options: WatermarkOptions
+): HTMLCanvasElement {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Cannot get canvas context');
+
+  if (!options.text) return canvas;
+
+  const fontSize = options.fontSize || Math.floor(canvas.width / 20);
+  ctx.font = `${fontSize}px Arial`;
+  const textMetrics = ctx.measureText(options.text);
+  const textWidth = textMetrics.width;
+  const textHeight = fontSize;
+  const spacing = options.spacing || 100;
+
+  // 平铺模式
+  if (options.tiled) {
+    for (let y = textHeight; y < canvas.height; y += spacing) {
+      for (let x = 0; x < canvas.width; x += textWidth + spacing) {
+        drawTextWatermark(ctx, options.text, x, y, options);
+      }
+    }
+  }
+  // 对角线模式
+  else if (options.diagonal) {
+    const angle = Math.atan2(canvas.height, canvas.width);
+    const diagonal = Math.sqrt(canvas.width ** 2 + canvas.height ** 2);
+    
+    for (let i = -diagonal; i < diagonal; i += textWidth + spacing) {
+      const x = canvas.width / 2 + i * Math.cos(angle);
+      const y = canvas.height / 2 + i * Math.sin(angle);
+      drawTextWatermark(ctx, options.text, x, y, options);
+    }
+  }
+  // 单个水印模式
+  else {
+    const padding = 20;
+    let x = 0, y = 0;
+    
+    switch (options.position) {
+      case 'top-left':
+        x = padding;
+        y = textHeight + padding;
+        break;
+      case 'top-right':
+        x = canvas.width - textWidth - padding;
+        y = textHeight + padding;
+        break;
+      case 'bottom-left':
+        x = padding;
+        y = canvas.height - padding;
+        break;
+      case 'bottom-right':
+        x = canvas.width - textWidth - padding;
+        y = canvas.height - padding;
+        break;
+      case 'center':
+        x = (canvas.width - textWidth) / 2;
+        y = (canvas.height + textHeight) / 2;
+        break;
+    }
+
+    drawTextWatermark(ctx, options.text, x, y, options);
+  }
+
   ctx.globalAlpha = 1.0;
   return canvas;
 }
 
 /**
- * 移除水印（简化版 - 基于颜色阈值）
- * 使用 inpainting 算法的简化实现
+ * 添加图片水印（支持平铺和对角线）
  */
-export function removeWatermark(
+export function addImageWatermark(
   canvas: HTMLCanvasElement,
-  options: RemoveWatermarkOptions
+  watermark: HTMLImageElement,
+  options: WatermarkOptions
 ): HTMLCanvasElement {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Cannot get canvas context');
 
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const data = imageData.data;
-  const width = canvas.width;
-  const height = canvas.height;
+  const baseWidth = canvas.width / 4;
+  const scale = options.scale || 0.25;
+  const width = baseWidth * scale;
+  const ratio = watermark.height / watermark.width;
+  const height = width * ratio;
+  const spacing = options.spacing || 100;
 
-  // 检测高亮区域（白色水印）
-  const mask = new Uint8Array(width * height);
-  const tolerance = options.tolerance || 240;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const brightness = (r + g + b) / 3;
-    
-    const pixelIndex = i / 4;
-    mask[pixelIndex] = brightness > tolerance ? 1 : 0;
-  }
-
-  // 简单的邻域平均修复
-  const feather = options.feather || 3;
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = y * width + x;
-      if (mask[idx] === 1) {
-        // 收集周围非水印像素
-        let sumR = 0, sumG = 0, sumB = 0, count = 0;
-        
-        for (let dy = -feather; dy <= feather; dy++) {
-          for (let dx = -feather; dx <= feather; dx++) {
-            const nx = x + dx;
-            const ny = y + dy;
-            
-            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-              const nIdx = ny * width + nx;
-              if (mask[nIdx] === 0) {
-                const pixelIdx = nIdx * 4;
-                sumR += data[pixelIdx];
-                sumG += data[pixelIdx + 1];
-                sumB += data[pixelIdx + 2];
-                count++;
-              }
-            }
-          }
-        }
-        
-        if (count > 0) {
-          const pixelIdx = idx * 4;
-          data[pixelIdx] = sumR / count;
-          data[pixelIdx + 1] = sumG / count;
-          data[pixelIdx + 2] = sumB / count;
-        }
+  // 平铺模式
+  if (options.tiled) {
+    for (let y = 0; y < canvas.height; y += height + spacing) {
+      for (let x = 0; x < canvas.width; x += width + spacing) {
+        drawImageWatermark(ctx, watermark, x, y, width, height, options);
       }
     }
   }
+  // 对角线模式
+  else if (options.diagonal) {
+    const angle = Math.atan2(canvas.height, canvas.width);
+    const diagonal = Math.sqrt(canvas.width ** 2 + canvas.height ** 2);
+    
+    for (let i = -diagonal; i < diagonal; i += width + spacing) {
+      const x = canvas.width / 2 + i * Math.cos(angle) - width / 2;
+      const y = canvas.height / 2 + i * Math.sin(angle) - height / 2;
+      drawImageWatermark(ctx, watermark, x, y, width, height, options);
+    }
+  }
+  // 单个水印模式
+  else {
+    const padding = 20;
+    let x = 0, y = 0;
+    
+    switch (options.position) {
+      case 'top-left':
+        x = padding;
+        y = padding;
+        break;
+      case 'top-right':
+        x = canvas.width - width - padding;
+        y = padding;
+        break;
+      case 'bottom-left':
+        x = padding;
+        y = canvas.height - height - padding;
+        break;
+      case 'bottom-right':
+        x = canvas.width - width - padding;
+        y = canvas.height - height - padding;
+        break;
+      case 'center':
+        x = (canvas.width - width) / 2;
+        y = (canvas.height - height) / 2;
+        break;
+    }
 
-  ctx.putImageData(imageData, 0, 0);
+    drawImageWatermark(ctx, watermark, x, y, width, height, options);
+  }
+
+  ctx.globalAlpha = 1.0;
   return canvas;
 }
 
@@ -226,8 +224,8 @@ export function removeWatermark(
  */
 export async function processImage(
   file: File,
-  operation: 'add-text' | 'add-image' | 'remove',
-  options: WatermarkOptions | RemoveWatermarkOptions
+  operation: 'add-text' | 'add-image',
+  options: WatermarkOptions
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -248,12 +246,10 @@ export async function processImage(
       ctx.drawImage(img, 0, 0);
       
       // 执行操作
-      if (operation === 'add-text' && 'text' in options) {
-        addTextWatermark(canvas, options as WatermarkOptions);
-      } else if (operation === 'add-image' && 'image' in options) {
-        addImageWatermark(canvas, options.image!, options as WatermarkOptions);
-      } else if (operation === 'remove') {
-        removeWatermark(canvas, options as RemoveWatermarkOptions);
+      if (operation === 'add-text') {
+        addTextWatermark(canvas, options);
+      } else if (operation === 'add-image' && options.image) {
+        addImageWatermark(canvas, options.image, options);
       }
       
       // 导出结果

@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { processImage } from "@/lib/image-processor";
 
-type Operation = "add-text" | "add-image" | "remove";
+type Operation = "add-text" | "add-image";
 
 interface WatermarkSettings {
   text: string;
@@ -13,11 +13,9 @@ interface WatermarkSettings {
   fontSize: number;
   color: string;
   rotation: number;
-}
-
-interface RemoveSettings {
-  tolerance: number;
-  feather: number;
+  tiled: boolean;
+  diagonal: boolean;
+  spacing: number;
 }
 
 export default function Home() {
@@ -31,16 +29,14 @@ export default function Home() {
   const [watermarkSettings, setWatermarkSettings] = useState<WatermarkSettings>({
     text: "水印",
     position: "bottom-right",
-    opacity: 0.8,
+    opacity: 1.0,  // 默认 100%
     scale: 0.25,
     fontSize: 48,
     color: "#FFFFFF",
     rotation: 0,
-  });
-
-  const [removeSettings, setRemoveSettings] = useState<RemoveSettings>({
-    tolerance: 240,
-    feather: 3,
+    tiled: false,
+    diagonal: false,
+    spacing: 100,
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -81,34 +77,29 @@ export default function Home() {
     setResult(null);
 
     try {
-      let options;
-      if (operation === "add-text") {
-        options = {
-          text: watermarkSettings.text,
-          position: watermarkSettings.position,
-          opacity: watermarkSettings.opacity,
-          scale: watermarkSettings.scale,
-          fontSize: watermarkSettings.fontSize,
-          color: watermarkSettings.color,
-          rotation: watermarkSettings.rotation,
-        };
-      } else if (operation === "add-image") {
-        if (!watermarkImage) {
-          throw new Error("请先上传水印图片");
-        }
-        options = {
-          image: watermarkImage,
-          position: watermarkSettings.position,
-          opacity: watermarkSettings.opacity,
-          scale: watermarkSettings.scale,
-          rotation: watermarkSettings.rotation,
-        };
-      } else {
-        options = {
-          tolerance: removeSettings.tolerance,
-          feather: removeSettings.feather,
-        };
-      }
+      const options = operation === "add-text"
+        ? {
+            text: watermarkSettings.text,
+            position: watermarkSettings.position,
+            opacity: watermarkSettings.opacity,
+            scale: watermarkSettings.scale,
+            fontSize: watermarkSettings.fontSize,
+            color: watermarkSettings.color,
+            rotation: watermarkSettings.rotation,
+            tiled: watermarkSettings.tiled,
+            diagonal: watermarkSettings.diagonal,
+            spacing: watermarkSettings.spacing,
+          }
+        : {
+            image: watermarkImage,
+            position: watermarkSettings.position,
+            opacity: watermarkSettings.opacity,
+            scale: watermarkSettings.scale,
+            rotation: watermarkSettings.rotation,
+            tiled: watermarkSettings.tiled,
+            diagonal: watermarkSettings.diagonal,
+            spacing: watermarkSettings.spacing,
+          };
 
       const blob = await processImage(file, operation, options as any);
       const url = URL.createObjectURL(blob);
@@ -118,7 +109,7 @@ export default function Home() {
     } finally {
       setProcessing(false);
     }
-  }, [file, operation, watermarkSettings, removeSettings, watermarkImage]);
+  }, [file, operation, watermarkSettings, watermarkImage]);
 
   const handleDownload = useCallback(() => {
     if (!result) return;
@@ -143,12 +134,6 @@ export default function Home() {
                 <h1 className="text-xl font-bold text-gray-900">Watermark Tool</h1>
                 <p className="text-xs text-gray-500">在线水印处理工具 - 内存处理，隐私安全</p>
               </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">🌐 中文</span>
-              <button className="text-sm text-blue-600 hover:text-blue-800">
-                English
-              </button>
             </div>
           </div>
         </div>
@@ -184,16 +169,6 @@ export default function Home() {
                   >
                     🖼️ 添加图片水印
                   </button>
-                  <button
-                    onClick={() => setOperation("remove")}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition ${
-                      operation === "remove"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    ✨ 移除水印
-                  </button>
                 </div>
               </div>
 
@@ -217,20 +192,61 @@ export default function Home() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      位置
+                      效果模式
                     </label>
-                    <select
-                      value={watermarkSettings.position}
-                      onChange={(e) => setWatermarkSettings({ ...watermarkSettings, position: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="top-left">左上角</option>
-                      <option value="top-right">右上角</option>
-                      <option value="bottom-left">左下角</option>
-                      <option value="bottom-right">右下角</option>
-                      <option value="center">居中</option>
-                    </select>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="effect"
+                          checked={!watermarkSettings.tiled && !watermarkSettings.diagonal}
+                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: false, diagonal: false })}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">单个水印</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="effect"
+                          checked={watermarkSettings.tiled}
+                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: true, diagonal: false })}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">🔲 平铺效果</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="effect"
+                          checked={watermarkSettings.diagonal}
+                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: false, diagonal: true })}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">↗️ 对角线效果</span>
+                      </label>
+                    </div>
                   </div>
+
+                  {/* 位置选择（仅单个水印模式） */}
+                  {!watermarkSettings.tiled && !watermarkSettings.diagonal && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        位置
+                      </label>
+                      <select
+                        value={watermarkSettings.position}
+                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, position: e.target.value as any })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="top-left">左上角</option>
+                        <option value="top-right">右上角</option>
+                        <option value="bottom-left">左下角</option>
+                        <option value="bottom-right">右下角</option>
+                        <option value="center">居中</option>
+                      </select>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -240,7 +256,7 @@ export default function Home() {
                       type="range"
                       min="0"
                       max="1"
-                      step="0.1"
+                      step="0.05"
                       value={watermarkSettings.opacity}
                       onChange={(e) => setWatermarkSettings({ ...watermarkSettings, opacity: parseFloat(e.target.value) })}
                       className="w-full"
@@ -286,6 +302,22 @@ export default function Home() {
                       className="w-full"
                     />
                   </div>
+
+                  {(watermarkSettings.tiled || watermarkSettings.diagonal) && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        间距：{watermarkSettings.spacing}px
+                      </label>
+                      <input
+                        type="range"
+                        min="20"
+                        max="300"
+                        value={watermarkSettings.spacing}
+                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, spacing: parseInt(e.target.value) })}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -314,20 +346,61 @@ export default function Home() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      位置
+                      效果模式
                     </label>
-                    <select
-                      value={watermarkSettings.position}
-                      onChange={(e) => setWatermarkSettings({ ...watermarkSettings, position: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="top-left">左上角</option>
-                      <option value="top-right">右上角</option>
-                      <option value="bottom-left">左下角</option>
-                      <option value="bottom-right">右下角</option>
-                      <option value="center">居中</option>
-                    </select>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="effect"
+                          checked={!watermarkSettings.tiled && !watermarkSettings.diagonal}
+                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: false, diagonal: false })}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">单个水印</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="effect"
+                          checked={watermarkSettings.tiled}
+                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: true, diagonal: false })}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">🔲 平铺效果</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="effect"
+                          checked={watermarkSettings.diagonal}
+                          onChange={() => setWatermarkSettings({ ...watermarkSettings, tiled: false, diagonal: true })}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">↗️ 对角线效果</span>
+                      </label>
+                    </div>
                   </div>
+
+                  {/* 位置选择（仅单个水印模式） */}
+                  {!watermarkSettings.tiled && !watermarkSettings.diagonal && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        位置
+                      </label>
+                      <select
+                        value={watermarkSettings.position}
+                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, position: e.target.value as any })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="top-left">左上角</option>
+                        <option value="top-right">右上角</option>
+                        <option value="bottom-left">左下角</option>
+                        <option value="bottom-right">右下角</option>
+                        <option value="center">居中</option>
+                      </select>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -352,49 +425,28 @@ export default function Home() {
                       type="range"
                       min="0"
                       max="1"
-                      step="0.1"
+                      step="0.05"
                       value={watermarkSettings.opacity}
                       onChange={(e) => setWatermarkSettings({ ...watermarkSettings, opacity: parseFloat(e.target.value) })}
                       className="w-full"
                     />
                   </div>
-                </div>
-              )}
 
-              {/* 移除水印设置 */}
-              {operation === "remove" && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">移除水印设置</h3>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      颜色阈值：{removeSettings.tolerance}
-                    </label>
-                    <input
-                      type="range"
-                      min="200"
-                      max="255"
-                      value={removeSettings.tolerance}
-                      onChange={(e) => setRemoveSettings({ ...removeSettings, tolerance: parseInt(e.target.value) })}
-                      className="w-full"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">检测比此值更亮的区域作为水印</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      修复范围：{removeSettings.feather}px
-                    </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      value={removeSettings.feather}
-                      onChange={(e) => setRemoveSettings({ ...removeSettings, feather: parseInt(e.target.value) })}
-                      className="w-full"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">从周围像素取样的范围</p>
-                  </div>
+                  {(watermarkSettings.tiled || watermarkSettings.diagonal) && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        间距：{watermarkSettings.spacing}px
+                      </label>
+                      <input
+                        type="range"
+                        min="20"
+                        max="300"
+                        value={watermarkSettings.spacing}
+                        onChange={(e) => setWatermarkSettings({ ...watermarkSettings, spacing: parseInt(e.target.value) })}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
