@@ -431,7 +431,7 @@ export default function Home() {
                 </h2>
                 
                 {/* 预览内容区 */}
-                <div className="flex-1 flex items-center justify-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden">
+                <div className="flex-1 flex items-center justify-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 overflow-auto relative">
                   {!preview && (
                     <div
                       onClick={() => fileInputRef.current?.click()}
@@ -448,11 +448,11 @@ export default function Home() {
                   )}
 
                   {preview && (
-                    <div className="relative w-full h-full p-4">
+                    <div className="relative w-full h-full p-4 flex items-center justify-center">
                       <img 
                         src={preview} 
                         alt="Preview" 
-                        className="max-w-full max-h-full object-contain rounded-lg shadow-lg mx-auto" 
+                        className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-lg" 
                       />
                       <button
                         onClick={() => {
