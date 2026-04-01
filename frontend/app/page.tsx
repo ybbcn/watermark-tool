@@ -423,27 +423,47 @@ export default function Home() {
             </div>
 
             {/* 右侧预览区域 - 70% */}
-            <div className="col-span-7 h-full">
-              <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-5 h-full flex flex-col">
+            <div className="col-span-7 h-full flex flex-col gap-4">
+              {/* 上半部分：图片上传区 */}
+              <div className="flex-shrink-0 bg-white rounded-2xl shadow-lg border border-slate-200 p-5">
+                <h2 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+                  <span className="w-1 h-5 bg-blue-500 rounded-full mr-2"></span>
+                  上传图片
+                </h2>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-dashed border-blue-300 p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all"
+                >
+                  <div className="w-16 h-16 mx-auto bg-white rounded-full flex items-center justify-center mb-3 shadow-sm">
+                    <svg className="w-8 h-8 text-blue-600" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <p className="text-base font-medium text-slate-700">点击或拖拽上传图片</p>
+                  <p className="mt-1 text-sm text-slate-500">支持 JPG, PNG, WebP 格式</p>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
+
+              {/* 下半部分：图片预览区 */}
+              <div className="flex-1 bg-white rounded-2xl shadow-lg border border-slate-200 p-5 min-h-0 flex flex-col">
                 <h2 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
                   <span className="w-1 h-5 bg-green-500 rounded-full mr-2"></span>
                   图片预览
                 </h2>
-                
-                {/* 预览内容区 */}
-                <div className="flex-1 flex items-center justify-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 overflow-auto relative">
+                <div className="flex-1 bg-slate-50 rounded-xl border border-slate-200 overflow-auto flex items-center justify-center relative">
                   {!preview && (
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="text-center cursor-pointer p-12 hover:bg-slate-100 transition-all"
-                    >
-                      <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-4">
-                        <svg className="w-10 h-10 text-blue-600" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </div>
-                      <p className="text-lg font-medium text-slate-700">点击或拖拽上传图片</p>
-                      <p className="mt-2 text-sm text-slate-500">支持 JPG, PNG, WebP 格式</p>
+                    <div className="text-center text-slate-400">
+                      <svg className="w-16 h-16 mx-auto mb-3 opacity-50" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p className="text-sm">请先上传图片</p>
                     </div>
                   )}
 
@@ -452,7 +472,7 @@ export default function Home() {
                       <img 
                         src={preview} 
                         alt="Preview" 
-                        className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-lg" 
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-lg" 
                       />
                       <button
                         onClick={() => {
@@ -461,18 +481,18 @@ export default function Home() {
                           setResult(null);
                           if (fileInputRef.current) fileInputRef.current.value = "";
                         }}
-                        className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-red-50 transition-all"
+                        className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-red-50 transition-all"
                       >
-                        <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
 
                       {result && (
-                        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
                           <button
                             onClick={handleDownload}
-                            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-8 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center"
+                            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-2.5 px-6 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center"
                           >
                             <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -484,14 +504,6 @@ export default function Home() {
                     </div>
                   )}
                 </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
               </div>
             </div>
           </div>
