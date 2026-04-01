@@ -1,15 +1,18 @@
 import NextAuth from "next-auth";
+import { env } from "@/lib/env";
 
-// WITHOUT D1 adapter - just test providers work
+// Cloudflare Pages compatible configuration
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
+  secret: env.AUTH_SECRET,
+  trustHost: true, // Required for Cloudflare Pages / CDN deployments
   providers: [
     {
       id: "google",
       name: "Google",
       type: "oauth",
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
       authorization: {
         url: "https://accounts.google.com/o/oauth2/v2/auth",
         params: { scope: "openid email profile" },
