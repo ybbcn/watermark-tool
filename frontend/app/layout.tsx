@@ -1,6 +1,5 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "💧 Watermark Tool - 在线水印处理工具",
@@ -18,7 +17,7 @@ export default function RootLayout({
         <script src="https://cdn.tailwindcss.com" async />
       </head>
       <body className="bg-gray-50 min-h-screen">
-        <SessionProvider>{children}</SessionProvider>
+        {children}
       </body>
     </html>
   );
