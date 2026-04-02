@@ -1,14 +1,9 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
+import Link from "next/link";
 import { processImage } from "@/lib/image-processor";
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  picture?: string;
-}
+import { UserMenu } from "@/components/UserMenu";
 
 type Operation = "add-text" | "add-image";
 
@@ -26,35 +21,12 @@ interface WatermarkSettings {
 }
 
 export default function Home() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [operation, setOperation] = useState<Operation>("add-text");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // 检查登录状态
-  useEffect(() => {
-    fetch("/api/auth/session")
-      .then((res) => res.json())
-      .then((data) => {
-        setUser(data.user);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  const handleLogin = () => {
-    window.location.href = "/api/auth/login";
-  };
-
-  const handleLogout = () => {
-    window.location.href = "/api/auth/logout";
-  };
   
   const [watermarkSettings, setWatermarkSettings] = useState<WatermarkSettings>({
     text: "水印",
@@ -166,31 +138,19 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              {loading ? (
-                <div className="w-8 h-8 rounded-full bg-slate-200 animate-pulse"></div>
-              ) : user ? (
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-2">
-                    {user.picture && (
-                      <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full" />
-                    )}
-                    <span className="text-sm text-slate-700 hidden sm:inline">{user.name}</span>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="text-sm text-slate-600 hover:text-red-600 transition"
-                  >
-                    退出
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleLogin}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition shadow"
-                >
-                  登录
-                </button>
-              )}
+              <UserMenu />
+              <Link 
+                href="/pricing"
+                className="hidden sm:inline-flex items-center text-sm text-slate-600 hover:text-blue-600 transition"
+              >
+                💎 定价
+              </Link>
+              <Link 
+                href="/faq"
+                className="hidden sm:inline-flex items-center text-sm text-slate-600 hover:text-blue-600 transition"
+              >
+                ❓ FAQ
+              </Link>
             </div>
           </div>
         </div>
