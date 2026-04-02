@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting to Google...</title>
+  <script>
+    // 立即重定向到 Google OAuth
+    const params = new URLSearchParams({
+      client_id: '118745016780-uh7p0pcumqmlba4juhu36in3e009vkk3.apps.googleusercontent.com',
+      redirect_uri: 'https://ybbtool.com/api/auth/callback/google',
+      response_type: 'code',
+      scope: 'openid email profile',
+      access_type: 'offline',
+      prompt: 'consent',
+    });
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  </script>
+</head>
+<body>
+  <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif;">
+    <div style="text-align: center;">
+      <div style="font-size: 24px; margin-bottom: 20px;">🔐 正在跳转到 Google 登录...</div>
+      <div style="color: #666;">如果页面没有自动跳转，<a href="#" onclick="location.reload()" style="color: #4285f4;">点击这里</a>重试</div>
+    </div>
+  </div>
+</body>
+</html>
