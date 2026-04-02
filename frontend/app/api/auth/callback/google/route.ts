@@ -6,14 +6,14 @@ export async function GET(request: NextRequest) {
   try {
     const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
     const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-    const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
+    const AUTH_SECRET = process.env.AUTH_SECRET;
 
     console.log("🔐 [DEBUG] Callback endpoint called");
     console.log("🔐 [DEBUG] GOOGLE_CLIENT_ID:", GOOGLE_CLIENT_ID ? "✅" : "❌");
     console.log("🔐 [DEBUG] GOOGLE_CLIENT_SECRET:", GOOGLE_CLIENT_SECRET ? "✅" : "❌");
-    console.log("🔐 [DEBUG] NEXTAUTH_SECRET:", NEXTAUTH_SECRET ? "✅" : "❌");
+    console.log("🔐 [DEBUG] AUTH_SECRET:", AUTH_SECRET ? "✅" : "❌");
 
-    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !NEXTAUTH_SECRET) {
+    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !AUTH_SECRET) {
       console.error("❌ Missing environment variables");
       return NextResponse.redirect(new URL("/?error=missing_env", request.url));
     }

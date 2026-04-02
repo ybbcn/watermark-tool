@@ -5,11 +5,11 @@ export const runtime = "edge";
 export async function GET(request: NextRequest) {
   try {
     const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-    const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
+    const AUTH_SECRET = process.env.AUTH_SECRET;
     
     console.log("🔐 [DEBUG] Login endpoint called");
     console.log("🔐 [DEBUG] GOOGLE_CLIENT_ID:", GOOGLE_CLIENT_ID ? "✅ present" : "❌ missing");
-    console.log("🔐 [DEBUG] NEXTAUTH_SECRET:", NEXTAUTH_SECRET ? "✅ present" : "❌ missing");
+    console.log("🔐 [DEBUG] AUTH_SECRET:", AUTH_SECRET ? "✅ present" : "❌ missing");
 
     if (!GOOGLE_CLIENT_ID) {
       console.error("❌ Missing GOOGLE_CLIENT_ID");
