@@ -1,9 +1,4 @@
 name = "watermark-tool"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "watermark-tool-db"
-database_id = "7607e1d1-9605-4588-a486-9e7da2cdc749"
