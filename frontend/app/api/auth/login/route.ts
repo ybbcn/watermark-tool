@@ -8,6 +8,15 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
 export async function GET(request: NextRequest) {
   try {
+    // 验证环境变量
+    if (!GOOGLE_CLIENT_ID) {
+      console.error("Missing GOOGLE_CLIENT_ID environment variable");
+      return NextResponse.json(
+        { error: "Server configuration error", message: "Missing GOOGLE_CLIENT_ID" },
+        { status: 500 }
+      );
+    }
+
     // 动态获取当前请求的域名
     const host = request.headers.get("host");
     const protocol = request.headers.get("x-forwarded-proto") || "https";

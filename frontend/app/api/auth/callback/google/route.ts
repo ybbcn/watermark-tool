@@ -33,12 +33,18 @@ export async function GET(request: NextRequest) {
     const protocol = request.headers.get("x-forwarded-proto") || "https";
     const GOOGLE_REDIRECT_URI = `${protocol}://${host}/api/auth/callback/google`;
 
+    // 验证环境变量
+    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !AUTH_SECRET) {
+      console.error("Missing environment variables");
+      return NextResponse.redirect(new URL("/?error=missing_env", request.url));
+    }
+
     // 交换访问令牌
     const tokenUrl = "https://oauth2.googleapis.com/token";
     const values = {
       code,
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
+      client_id: GOOGLE_CLIENT_ID!,
+      client_secret: GOOGLE_CLIENT_SECRET!,
       redirect_uri: GOOGLE_REDIRECT_URI,
       grant_type: "authorization_code",
     };
