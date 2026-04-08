@@ -4,7 +4,7 @@ import { upsertUser } from "@/lib/db";
 
 export const runtime = "edge";
 
-export async function GET(request: NextRequest, { env }: { env: { DB: D1Database | any } }) {
+export async function GET(request: NextRequest, { env }: any) {
   try {
     const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
     const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;

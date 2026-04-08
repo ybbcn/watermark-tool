@@ -4,7 +4,7 @@ import { getUser, checkAndResetQuota } from "@/lib/db";
 
 export const runtime = "edge";
 
-export async function GET(request: NextRequest, { env }: { env: { DB: D1Database | any } }) {
+export async function GET(request: NextRequest, { env }: any) {
   const cookies = request.headers.get("cookie");
   const sessionToken = getSessionCookie(cookies);
 
