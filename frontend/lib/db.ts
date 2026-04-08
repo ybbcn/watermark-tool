@@ -3,7 +3,7 @@
  */
 
 export interface Env {
-  DB: D1Database;
+  DB: any;
 }
 
 export interface User {
