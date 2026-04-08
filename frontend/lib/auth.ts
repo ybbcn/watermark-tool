@@ -20,13 +20,16 @@ const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 /**
  * 获取 AUTH_SECRET（在函数内部读取，确保 Edge Runtime 正确注入）
+ * 优先使用 AUTH_SECRET，其次使用 NEXTAUTH_SECRET
  */
 function getAuthSecret(): string {
-  const secret = process.env.AUTH_SECRET;
+  const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
   if (!secret) {
-    console.error("❌ AUTH_SECRET is missing!");
+    console.error("❌ AUTH_SECRET and NEXTAUTH_SECRET are both missing!");
+    console.error("Available env vars:", Object.keys(process.env));
     throw new Error("AUTH_SECRET is not configured");
   }
+  console.log("✅ Using auth secret, length:", secret.length);
   return secret;
 }
 
