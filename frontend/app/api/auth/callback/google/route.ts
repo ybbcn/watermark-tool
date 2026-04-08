@@ -104,13 +104,29 @@ export async function GET(request: NextRequest, { env }: any) {
     console.log("🔐 [Callback] Session token created");
 
     const response = NextResponse.redirect(new URL("/", request.url));
-    response.cookies.set("session", token, {
+    
+    // 设置 session cookie
+    const cookieValue = token;
+    console.log("🔐 [Callback] Setting session cookie, token length:", cookieValue.length);
+    console.log("🔐 [Callback] Cookie config:", {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30,
       path: "/",
     });
+    
+    response.cookies.set("session", cookieValue, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
+    
+    // 验证 cookie 是否设置成功
+    const cookies = response.cookies.getAll();
+    console.log("🔐 [Callback] All cookies after set:", cookies);
     
     console.log("🔐 [Callback] Session cookie set, redirecting to home");
     
