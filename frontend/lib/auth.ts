@@ -16,17 +16,32 @@ export interface Session {
   expires: number;
 }
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
-const AUTH_SECRET = process.env.AUTH_SECRET!;
-
 const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+/**
+ * 获取 AUTH_SECRET（在函数内部读取，确保 Edge Runtime 正确注入）
+ */
+function getAuthSecret(): string {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    console.error("❌ AUTH_SECRET is missing!");
+    throw new Error("AUTH_SECRET is not configured");
+  }
+  return secret;
+}
 
 /**
  * 生成 Google OAuth 授权 URL
  */
 export function getGoogleOAuthURL() {
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+  const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+  
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI) {
+    console.error("❌ Missing GOOGLE_CLIENT_ID or GOOGLE_REDIRECT_URI");
+    throw new Error("OAuth configuration missing");
+  }
+  
   const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
   const options = {
     redirect_uri: GOOGLE_REDIRECT_URI,
@@ -44,13 +59,20 @@ export function getGoogleOAuthURL() {
 /**
  * 使用授权码交换访问令牌
  */
-export async function exchangeCodeForToken(code: string) {
+export async function exchangeCodeForToken(code: string, redirectUri: string) {
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+  const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+  
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    throw new Error("OAuth credentials missing");
+  }
+  
   const tokenUrl = "https://oauth2.googleapis.com/token";
   const values = {
     code,
     client_id: GOOGLE_CLIENT_ID,
     client_secret: GOOGLE_CLIENT_SECRET,
-    redirect_uri: GOOGLE_REDIRECT_URI,
+    redirect_uri: redirectUri,
     grant_type: "authorization_code",
   };
 
@@ -97,7 +119,7 @@ export async function getUserInfo(accessToken: string): Promise<User> {
  * 创建会话 Token
  */
 export async function createSession(user: User): Promise<string> {
-  const secret = new TextEncoder().encode(AUTH_SECRET);
+  const secret = new TextEncoder().encode(getAuthSecret());
   const expiresAt = Date.now() + SESSION_DURATION;
 
   const token = await new SignJWT({ user })
@@ -114,7 +136,7 @@ export async function createSession(user: User): Promise<string> {
  */
 export async function verifySession(token: string): Promise<Session | null> {
   try {
-    const secret = new TextEncoder().encode(AUTH_SECRET);
+    const secret = new TextEncoder().encode(getAuthSecret());
     const { payload } = await jwtVerify(token, secret);
     
     if (!payload.user || !payload.exp) {
@@ -125,7 +147,8 @@ export async function verifySession(token: string): Promise<Session | null> {
       user: payload.user as User,
       expires: payload.exp * 1000,
     };
-  } catch {
+  } catch (err) {
+    console.error("❌ verifySession failed:", err);
     return null;
   }
 }
