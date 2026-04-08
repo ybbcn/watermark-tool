@@ -17,7 +17,7 @@ export interface QuotaCheck {
  * 检查用户配额
  */
 export async function checkQuota(
-  db: D1Database,
+  db: any,
   userId: string
 ): Promise<QuotaCheck> {
   const user = await checkAndResetQuota(db, userId);

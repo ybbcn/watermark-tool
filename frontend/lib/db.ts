@@ -38,7 +38,7 @@ export interface UserStats {
 /**
  * 获取用户信息
  */
-export async function getUser(db: D1Database, userId: string): Promise<User | null> {
+export async function getUser(db: any, userId: string): Promise<User | null> {
   const { results } = await db.prepare(
     'SELECT * FROM users WHERE id = ?'
   ).bind(userId).all();
@@ -48,7 +48,7 @@ export async function getUser(db: D1Database, userId: string): Promise<User | nu
 /**
  * 通过邮箱获取用户
  */
-export async function getUserByEmail(db: D1Database, email: string): Promise<User | null> {
+export async function getUserByEmail(db: any, email: string): Promise<User | null> {
   const { results } = await db.prepare(
     'SELECT * FROM users WHERE email = ?'
   ).bind(email).all();
@@ -58,7 +58,7 @@ export async function getUserByEmail(db: D1Database, email: string): Promise<Use
 /**
  * 创建或更新用户（登录时调用）
  */
-export async function upsertUser(db: D1Database, user: {
+export async function upsertUser(db: any, user: {
   id: string;
   email: string;
   name: string;
@@ -80,7 +80,7 @@ export async function upsertUser(db: D1Database, user: {
 /**
  * 更新用户配额
  */
-export async function updateUserQuota(db: D1Database, userId: string, used: number) {
+export async function updateUserQuota(db: any, userId: string, used: number) {
   await db.prepare(`
     UPDATE users SET daily_used = ?, updated_at = strftime('%s', 'now')
     WHERE id = ?
@@ -90,7 +90,7 @@ export async function updateUserQuota(db: D1Database, userId: string, used: numb
 /**
  * 消耗配额
  */
-export async function consumeQuota(db: D1Database, userId: string): Promise<boolean> {
+export async function consumeQuota(db: any, userId: string): Promise<boolean> {
   const result = await db.prepare(`
     UPDATE users SET daily_used = daily_used + 1
     WHERE id = ? AND daily_used < daily_limit
@@ -103,7 +103,7 @@ export async function consumeQuota(db: D1Database, userId: string): Promise<bool
  * 记录使用日志
  */
 export async function logUsage(
-  db: D1Database,
+  db: any,
   userId: string,
   operation: string,
   fileSize?: number,
@@ -132,7 +132,7 @@ export async function logUsage(
 /**
  * 获取用户统计
  */
-export async function getUserStats(db: D1Database, userId: string): Promise<UserStats> {
+export async function getUserStats(db: any, userId: string): Promise<UserStats> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const todayStart = Math.floor(today.getTime() / 1000);
@@ -159,7 +159,7 @@ export async function getUserStats(db: D1Database, userId: string): Promise<User
 /**
  * 获取最近使用记录
  */
-export async function getRecentUsage(db: D1Database, userId: string, limit = 10): Promise<UsageLog[]> {
+export async function getRecentUsage(db: any, userId: string, limit = 10): Promise<UsageLog[]> {
   const { results } = await db.prepare(`
     SELECT * FROM usage_logs 
     WHERE user_id = ? 
@@ -173,7 +173,7 @@ export async function getRecentUsage(db: D1Database, userId: string, limit = 10)
 /**
  * 检查并重置每日配额
  */
-export async function checkAndResetQuota(db: D1Database, userId: string): Promise<User | null> {
+export async function checkAndResetQuota(db: any, userId: string): Promise<User | null> {
   const user = await getUser(db, userId);
   if (!user) return null;
 
