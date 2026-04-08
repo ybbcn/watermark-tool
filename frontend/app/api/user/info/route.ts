@@ -4,7 +4,7 @@ import { getUser, getUserStats, getRecentUsage } from "@/lib/db";
 
 export const runtime = "edge";
 
-export async function GET(request: NextRequest, { env }: { env: { DB: D1Database } }) {
+export async function GET(request: NextRequest, { env }: { env: { DB: D1Database | any } }) {
   const cookies = request.headers.get("cookie");
   const sessionToken = getSessionCookie(cookies);
 
