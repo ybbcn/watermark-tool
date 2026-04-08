@@ -34,13 +34,26 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/user/info")
-      .then((res) => {
+    fetch("/api/user/info", {
+      credentials: "include", // 确保带上 cookie
+    })
+      .then(async (res) => {
+        console.log("[Profile] Response status:", res.status);
+        const text = await res.text();
+        console.log("[Profile] Response text:", text);
+        
         if (res.status === 401) {
+          console.log("[Profile] Unauthorized, redirecting to home");
           router.push("/");
           return null;
         }
-        return res.json();
+        
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          console.error("[Profile] Failed to parse JSON:", e, text);
+          return null;
+        }
       })
       .then((data) => {
         if (data) {
@@ -48,6 +61,10 @@ export default function ProfilePage() {
           setStats(data.stats);
           setRecentUsage(data.recentUsage);
         }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("[Profile] Fetch error:", err);
         setLoading(false);
       });
   }, [router]);

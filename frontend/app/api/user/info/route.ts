@@ -8,12 +8,20 @@ export async function GET(request: NextRequest, { env }: any) {
   const cookies = request.headers.get("cookie");
   const sessionToken = getSessionCookie(cookies);
 
+  console.log("🔐 [User Info] Checking auth...");
+  console.log("🔐 [User Info] Cookies present:", cookies ? "yes" : "no");
+  console.log("🔐 [User Info] Session token found:", sessionToken ? "yes" : "no");
+
   if (!sessionToken) {
+    console.log("🔐 [User Info] No session token, returning 401");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const session = await verifySession(sessionToken);
+  console.log("🔐 [User Info] Session verification:", session ? "success" : "failed");
+  
   if (!session) {
+    console.log("🔐 [User Info] Invalid session, returning 401");
     return NextResponse.json({ error: "Invalid session" }, { status: 401 });
   }
 
