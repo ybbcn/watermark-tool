@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession, getSessionCookie } from "@/lib/auth";
 import { checkQuota, consumeQuota } from "@/lib/quota";
-import { getCloudflareContext } from "@cloudflare/next-on-pages";
 
 export const runtime = 'edge';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, context: any) {
   try {
-    console.log("🔍 [Watermark] Getting Cloudflare context...");
-    const env = await getCloudflareContext();
-    const db = (env as any).DB as D1Database;
+    const env = context.env || {};
+    const db = env.DB;
     
     if (!db) {
       console.error("❌ [Watermark] DB not configured");
@@ -28,7 +26,6 @@ export async function POST(request: NextRequest) {
 
     console.log("📥 [Watermark] Received file:", file.name, file.size, "bytes");
 
-    // 检查用户登录状态
     const cookies = request.headers.get("cookie");
     const sessionToken = getSessionCookie(cookies);
     
@@ -47,12 +44,10 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // 如果未登录，使用匿名配额
     if (!userId) {
       isAnonymous = true;
       console.log("🔐 [Watermark] Anonymous user");
     } else {
-      // 检查登录用户配额
       try {
         const quotaCheck = await checkQuota(db, userId);
         console.log("🔐 [Watermark] Quota check for user", userId, ":", quotaCheck);
@@ -79,7 +74,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 在 Edge 环境中使用 Canvas 处理图片
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
     const imageBitmap = await createImageBitmap(new Blob([uint8Array]));
@@ -104,7 +98,6 @@ export async function POST(request: NextRequest) {
     
     console.log("✅ [Watermark] Image processed successfully");
     
-    // 处理成功，扣减配额
     if (!isAnonymous && userId) {
       try {
         const consumed = await consumeQuota(db, userId);
