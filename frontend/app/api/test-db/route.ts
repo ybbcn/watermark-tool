@@ -1,23 +1,37 @@
 import { NextResponse } from "next/server";
+import type { PlatformProxy } from "wrangler";
+
+type Cloudflare = PlatformProxy<{
+  DB: D1Database;
+}>;
+
+interface GetCloudflareContext {
+  cf: Cloudflare["cf"];
+  env: Cloudflare["env"];
+  ctx: Cloudflare["ctx"];
+}
+
+function getCloudflareContext(request: Request): GetCloudflareContext {
+  return (request as any).cf as GetCloudflareContext;
+}
 
 export const runtime = 'edge';
 
-export async function GET(request: Request, { env }: any) {
+export async function GET(request: Request) {
   try {
-    console.log("🔍 [Test DB] Checking environment...");
-    console.log("🔍 [Test DB] env:", Object.keys(env || {}));
+    const { env } = getCloudflareContext(request);
     
-    if (!env.DB) {
+    console.log("🔍 [Test DB] Checking environment...");
+    
+    if (!env || !env.DB) {
       return NextResponse.json({
         error: "DB not configured",
-        message: "D1 数据库未绑定，请检查 Cloudflare Pages 配置",
-        env_keys: Object.keys(env || {}),
+        message: "D1 数据库未绑定",
       }, { status: 500 });
     }
     
     console.log("✅ [Test DB] DB binding found");
     
-    // 测试数据库连接
     const result = await env.DB.prepare("SELECT 1 as test").first();
     console.log("✅ [Test DB] Query result:", result);
     
@@ -32,7 +46,6 @@ export async function GET(request: Request, { env }: any) {
     return NextResponse.json({
       error: "Database error",
       message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
     }, { status: 500 });
   }
 }
