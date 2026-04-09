@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
-import { processImage } from "@/lib/image-processor";
 import { UserMenu } from "@/components/UserMenu";
 
 type Operation = "add-text" | "add-image";
@@ -40,7 +39,7 @@ export default function Home() {
     diagonal: false,
     spacing: 100,
   });
-
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const watermarkInputRef = useRef<HTMLInputElement>(null);
   const [watermarkImage, setWatermarkImage] = useState<HTMLImageElement | null>(null);
@@ -79,31 +78,22 @@ export default function Home() {
     setResult(null);
 
     try {
-      const options = operation === "add-text"
-        ? {
-            text: watermarkSettings.text,
-            position: watermarkSettings.position,
-            opacity: watermarkSettings.opacity,
-            scale: watermarkSettings.scale,
-            fontSize: watermarkSettings.fontSize,
-            color: watermarkSettings.color,
-            rotation: watermarkSettings.rotation,
-            tiled: watermarkSettings.tiled,
-            diagonal: watermarkSettings.diagonal,
-            spacing: watermarkSettings.spacing,
-          }
-        : {
-            image: watermarkImage,
-            position: watermarkSettings.position,
-            opacity: watermarkSettings.opacity,
-            scale: watermarkSettings.scale,
-            rotation: watermarkSettings.rotation,
-            tiled: watermarkSettings.tiled,
-            diagonal: watermarkSettings.diagonal,
-            spacing: watermarkSettings.spacing,
-          };
-
-      const blob = await processImage(file, operation, options as any);
+      // 使用后端 API 处理，以便扣减配额
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch("/api/add-watermark", {
+        method: "POST",
+        body: formData,
+        credentials: "include", // 包含 cookie 用于身份验证
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `处理失败：${response.status}`);
+      }
+      
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       setResult(url);
     } catch (err) {
@@ -111,7 +101,7 @@ export default function Home() {
     } finally {
       setProcessing(false);
     }
-  }, [file, operation, watermarkSettings, watermarkImage]);
+  }, [file]);
 
   const handleDownload = useCallback(() => {
     if (!result) return;
