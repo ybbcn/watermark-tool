@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { captureOrder, getOrderDetails } from "@/lib/paypal";
-import { getCloudflareContext } from "@cloudflare/next-on-pages";
-import { getUserByEmail, updateUserQuota } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,46 +39,8 @@ export async function POST(request: NextRequest) {
       plan,
     });
     
-    // 更新用户配额
-    if (userId || userEmail) {
-      try {
-        const env = await getCloudflareContext();
-        const db = (env as any).env?.DB || (env as any).DB;
-        
-        if (db) {
-          // 根据邮箱查找用户
-          const user = userEmail ? await getUserByEmail(db, userEmail) : null;
-          
-          if (user) {
-            // 根据计划更新配额
-            const quotaUpdate = {
-              Pro: { daily_limit: 100 },
-              Enterprise: { daily_limit: 999999 },
-            }[plan] || { daily_limit: 100 };
-            
-            // 更新用户订阅状态
-            await db.prepare(`
-              UPDATE users 
-              SET subscription_type = ?, 
-                  daily_limit = ?,
-                  daily_used = 0,
-                  daily_reset_at = strftime('%s', 'now'),
-                  updated_at = strftime('%s', 'now')
-              WHERE id = ?
-            `).bind(plan.toLowerCase(), quotaUpdate.daily_limit, user.id).run();
-            
-            console.log('✅ [PayPal] User subscription updated:', {
-              userId: user.id,
-              plan,
-              ...quotaUpdate,
-            });
-          }
-        }
-      } catch (dbError) {
-        console.error('❌ [PayPal] Database update error:', dbError);
-        // 不返回错误，支付已成功
-      }
-    }
+    // TODO: 更新用户配额（需要实现数据库访问）
+    console.log('ℹ️ [PayPal] User quota update skipped (needs database integration)');
     
     return NextResponse.json({
       success: true,

@@ -250,16 +250,16 @@ export default function PricingPage() {
                   <span className="text-5xl font-bold text-slate-900">
                     ${plan.price}
                   </span>
-                  {plan.period && (
+                  {'period' in plan && plan.period && (
                     <span className="text-slate-500 ml-2">{plan.period}</span>
                   )}
                 </div>
-                {plan.originalPrice && (
+                {'originalPrice' in plan && plan.originalPrice && (
                   <p className="text-slate-400 line-through mt-1">
                     原价 ${plan.originalPrice}
                   </p>
                 )}
-                {plan.credits && (
+                {'credits' in plan && plan.credits && (
                   <p className="text-blue-600 font-medium mt-2">
                     {plan.credits} 次处理 • {plan.perCredit}
                   </p>
