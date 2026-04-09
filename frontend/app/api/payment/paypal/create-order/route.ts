@@ -37,40 +37,11 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    // 订阅支付
+    // 订阅支付（暂时禁用，需要先创建订阅计划）
     if (type === 'subscription') {
-      // 获取用户邮箱（从 session 或其他地方）
-      const sessionRes = await fetch(new URL('/api/auth/session', request.url), {
-        headers: { cookie: request.headers.get('cookie') || '' },
-      });
-      const sessionData = await sessionRes.json();
-      const userEmail = sessionData.user?.email;
-      
-      // 根据计划 ID 选择对应的订阅计划
-      let planId = SUBSCRIPTION_PLANS.PRO_MONTHLY;
-      
-      if (plan === 'pro-yearly') {
-        planId = SUBSCRIPTION_PLANS.PRO_YEARLY;
-      } else if (plan === 'enterprise') {
-        planId = SUBSCRIPTION_PLANS.ENTERPRISE_MONTHLY;
-      }
-      
-      // 创建订阅
-      const subscription = await createSubscription(planId, userEmail);
-      
-      return NextResponse.json({
-        success: true,
-        subscriptionId: subscription.id,
-        approvalUrl: subscription.links?.find((link: any) => link.rel === 'approve')?.href,
-        type: 'subscription',
-        plan,
-      });
+      console.warn('⚠️ [PayPal] Subscription not configured yet, falling back to one-time payment');
+      // 暂时作为一次性支付处理
     }
-    
-    return NextResponse.json(
-      { error: 'Invalid payment type' },
-      { status: 400 }
-    );
   } catch (error) {
     console.error('❌ [PayPal] Create order error:', error);
     return NextResponse.json(

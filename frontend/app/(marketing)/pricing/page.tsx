@@ -205,35 +205,19 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* 切换标签 */}
-        <div className="flex justify-center mb-12">
-          <div className="bg-white rounded-xl p-1 shadow-lg inline-flex">
-            <button
-              onClick={() => setActiveTab('subscription')}
-              className={`px-8 py-3 rounded-lg font-medium transition ${
-                activeTab === 'subscription'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              📅 订阅计划
-            </button>
-            <button
-              onClick={() => setActiveTab('one-time')}
-              className={`px-8 py-3 rounded-lg font-medium transition ${
-                activeTab === 'one-time'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              💰 积分包
-            </button>
-          </div>
+        {/* 切换标签 - 暂时只显示积分包 */}
+        <div className="text-center mb-8">
+          <p className="text-lg text-slate-600 mb-2">
+            💰 积分包 - 永久有效，随时使用
+          </p>
+          <p className="text-sm text-slate-500">
+            （订阅功能即将上线，敬请期待）
+          </p>
         </div>
 
-        {/* 价格卡片 */}
+        {/* 价格卡片 - 只显示积分包 */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {(activeTab === 'subscription' ? subscriptionPlans : creditPacks).map((plan) => (
+          {creditPacks.map((plan) => (
             <div
               key={plan.id}
               className={`relative bg-white rounded-2xl p-8 ${
