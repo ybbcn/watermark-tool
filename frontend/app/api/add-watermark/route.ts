@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession, getSessionCookie } from "@/lib/auth";
 import { checkQuota, consumeQuota } from "@/lib/quota";
+import { getCloudflareContext } from "@cloudflare/next-on-pages";
 
 export const runtime = 'edge';
 
-export async function POST(request: NextRequest, { env }: any) {
+export async function POST(request: NextRequest) {
   try {
+    console.log("🔍 [Watermark] Getting Cloudflare context...");
+    const env = await getCloudflareContext();
+    const db = (env as any).DB as D1Database;
+    
+    if (!db) {
+      console.error("❌ [Watermark] DB not configured");
+      return NextResponse.json({
+        error: "Database not configured",
+        message: "D1 数据库未绑定",
+      }, { status: 500 });
+    }
+    
     const formData = await request.formData();
     const file = formData.get("file") as File;
     
@@ -41,17 +54,15 @@ export async function POST(request: NextRequest, { env }: any) {
     } else {
       // 检查登录用户配额
       try {
-        const quotaCheck = await checkQuota(env.DB, userId);
+        const quotaCheck = await checkQuota(db, userId);
         console.log("🔐 [Watermark] Quota check for user", userId, ":", quotaCheck);
         
         if (!quotaCheck.allowed) {
-          console.warn("⚠️ [Watermark] User", userId, "quota exceeded. Remaining:", quotaCheck.remaining, "Limit:", quotaCheck.limit);
+          console.warn("⚠️ [Watermark] User", userId, "quota exceeded");
           return NextResponse.json(
             { 
               error: "Quota exceeded",
               message: "今日配额已用完，请明天再来或升级 Pro",
-              remaining: quotaCheck.remaining,
-              limit: quotaCheck.limit,
             },
             { status: 403 }
           );
@@ -61,7 +72,7 @@ export async function POST(request: NextRequest, { env }: any) {
         return NextResponse.json(
           {
             error: "Database error",
-            message: "无法验证配额，请稍后重试",
+            message: "无法验证配额",
           },
           { status: 500 }
         );
@@ -71,11 +82,7 @@ export async function POST(request: NextRequest, { env }: any) {
     // 在 Edge 环境中使用 Canvas 处理图片
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
-    
-    // 创建 ImageBitmap（Edge Runtime 支持）
     const imageBitmap = await createImageBitmap(new Blob([uint8Array]));
-    
-    // 创建 OffscreenCanvas
     const canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
     const ctx = canvas.getContext('2d');
     
@@ -83,17 +90,13 @@ export async function POST(request: NextRequest, { env }: any) {
       throw new Error("Cannot get canvas context");
     }
     
-    // 绘制原图
     ctx.drawImage(imageBitmap, 0, 0);
-    
-    // 添加文字水印
     ctx.font = `${Math.floor(canvas.width / 20)}px Arial`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
     ctx.textAlign = "right";
     ctx.textBaseline = "bottom";
     ctx.fillText("Watermark", canvas.width - 20, canvas.height - 20);
     
-    // 导出为 JPEG
     const processedBlob = await canvas.convertToBlob({
       type: "image/jpeg",
       quality: 0.95,
@@ -104,12 +107,8 @@ export async function POST(request: NextRequest, { env }: any) {
     // 处理成功，扣减配额
     if (!isAnonymous && userId) {
       try {
-        const consumed = await consumeQuota(env.DB, userId);
-        if (consumed) {
-          console.log("✅ [Watermark] Quota consumed for user:", userId);
-        } else {
-          console.warn("⚠️ [Watermark] Quota NOT consumed:", userId);
-        }
+        const consumed = await consumeQuota(db, userId);
+        console.log(consumed ? "✅ [Watermark] Quota consumed" : "⚠️ [Watermark] Quota NOT consumed");
       } catch (quotaErr) {
         console.error("❌ [Watermark] Failed to consume quota:", quotaErr);
       }

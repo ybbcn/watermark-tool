@@ -1,38 +1,27 @@
 import { NextResponse } from "next/server";
-import type { PlatformProxy } from "wrangler";
-
-type Cloudflare = PlatformProxy<{
-  DB: D1Database;
-}>;
-
-interface GetCloudflareContext {
-  cf: Cloudflare["cf"];
-  env: Cloudflare["env"];
-  ctx: Cloudflare["ctx"];
-}
-
-function getCloudflareContext(request: Request): GetCloudflareContext {
-  return (request as any).cf as GetCloudflareContext;
-}
+import { getCloudflareContext } from "@cloudflare/next-on-pages";
 
 export const runtime = 'edge';
 
 export async function GET(request: Request) {
   try {
-    const { env } = getCloudflareContext(request);
-    
     console.log("🔍 [Test DB] Checking environment...");
     
-    if (!env || !env.DB) {
+    const env = await getCloudflareContext();
+    console.log("🔍 [Test DB] env keys:", Object.keys(env || {}));
+    
+    if (!env || !(env as any).DB) {
       return NextResponse.json({
         error: "DB not configured",
         message: "D1 数据库未绑定",
+        env_keys: env ? Object.keys(env) : [],
       }, { status: 500 });
     }
     
     console.log("✅ [Test DB] DB binding found");
     
-    const result = await env.DB.prepare("SELECT 1 as test").first();
+    const db = (env as any).DB as D1Database;
+    const result = await db.prepare("SELECT 1 as test").first();
     console.log("✅ [Test DB] Query result:", result);
     
     return NextResponse.json({
