@@ -148,10 +148,19 @@ export default function PricingPage() {
         return;
       }
       
+      console.log('💳 Creating PayPal order:', {
+        amount: item.price,
+        currency: "USD",
+        plan: item.id,
+        type: item.type,
+      });
+      
       // 创建 PayPal 订单
       const response = await fetch("/api/payment/paypal/create-order", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           amount: item.price,
           currency: "USD",
@@ -161,17 +170,23 @@ export default function PricingPage() {
         }),
       });
       
+      console.log('📊 Response status:', response.status);
       const data = await response.json();
+      console.log('📊 Response data:', data);
+      
+      if (!response.ok) {
+        throw new Error(data.message || data.error || `HTTP ${response.status}`);
+      }
       
       if (data.success && data.approvalUrl) {
         // 跳转到 PayPal 支付页面
         window.location.href = data.approvalUrl;
       } else {
-        alert("创建订单失败：" + (data.error || "未知错误"));
+        throw new Error(data.error || "创建订单失败");
       }
     } catch (error) {
       console.error("Payment error:", error);
-      alert("支付系统暂时不可用，请稍后重试");
+      alert("支付失败：" + (error instanceof Error ? error.message : "未知错误"));
     } finally {
       setLoading(false);
     }

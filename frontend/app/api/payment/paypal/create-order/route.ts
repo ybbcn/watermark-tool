@@ -5,10 +5,15 @@ export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔔 [PayPal] Creating order...', request.url);
+    
     const body = await request.json();
     const { amount, currency = 'USD', plan, type = 'one-time', credits } = body;
     
+    console.log('📝 [PayPal] Request body:', { amount, currency, type, plan });
+    
     if (!amount || typeof amount !== 'number') {
+      console.error('❌ [PayPal] Invalid amount:', amount);
       return NextResponse.json(
         { error: 'Invalid amount' },
         { status: 400 }
