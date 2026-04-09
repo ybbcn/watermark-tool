@@ -91,12 +91,23 @@ export async function updateUserQuota(db: any, userId: string, used: number) {
  * 消耗配额
  */
 export async function consumeQuota(db: any, userId: string): Promise<boolean> {
-  const result = await db.prepare(`
-    UPDATE users SET daily_used = daily_used + 1
-    WHERE id = ? AND daily_used < daily_limit
-  `).bind(userId).run();
-  
-  return result.success && result.meta.changes > 0;
+  try {
+    const result = await db.prepare(`
+      UPDATE users SET daily_used = daily_used + 1, updated_at = strftime('%s', 'now')
+      WHERE id = ?
+    `).bind(userId).run();
+    
+    const success = result.success && result.meta.changes > 0;
+    
+    if (!success) {
+      console.error("❌ [DB] consumeQuota failed for user", userId, "- changes:", result.meta.changes);
+    }
+    
+    return success;
+  } catch (error) {
+    console.error("❌ [DB] consumeQuota error for user", userId, ":", error);
+    throw error;
+  }
 }
 
 /**

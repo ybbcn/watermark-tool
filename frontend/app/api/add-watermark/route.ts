@@ -35,9 +35,10 @@ export async function POST(request: NextRequest, { env }: any) {
     } else {
       // 检查登录用户配额
       const quotaCheck = await checkQuota(env.DB, userId);
-      console.log("🔐 [Watermark] Quota check:", quotaCheck);
+      console.log("🔐 [Watermark] Quota check for user", userId, ":", quotaCheck);
       
       if (!quotaCheck.allowed) {
+        console.warn("⚠️ [Watermark] User", userId, "quota exceeded. Remaining:", quotaCheck.remaining, "Limit:", quotaCheck.limit);
         return NextResponse.json(
           { 
             error: "Quota exceeded",
@@ -66,8 +67,12 @@ export async function POST(request: NextRequest, { env }: any) {
     // 处理成功，扣减配额
     if (!isAnonymous && userId) {
       try {
-        await consumeQuota(env.DB, userId);
-        console.log("✅ [Watermark] Quota consumed for user:", userId);
+        const consumed = await consumeQuota(env.DB, userId);
+        if (consumed) {
+          console.log("✅ [Watermark] Quota consumed for user:", userId);
+        } else {
+          console.warn("⚠️ [Watermark] Quota NOT consumed (may have reached limit):", userId);
+        }
       } catch (quotaErr) {
         console.error("❌ [Watermark] Failed to consume quota:", quotaErr);
         // 配额扣减失败不影响返回结果
