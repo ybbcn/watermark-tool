@@ -1,72 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-// 订阅计划
-const subscriptionPlans = [
-  {
-    id: "pro-monthly",
-    name: "Pro 月度",
-    price: 9.99,
-    period: "/月",
-    type: "subscription",
-    description: "适合频繁使用的专业人士",
-    features: [
-      "✅ 每天 100 次处理",
-      "✅ 文字 + 图片水印",
-      "✅ 高清画质导出",
-      "✅ 批量处理 (10 张)",
-      "✅ 去除水印 (5 次/天)",
-      "❌ API 访问",
-    ],
-    cta: "订阅 Pro",
-    highlight: true,
-    popular: true,
-  },
-  {
-    id: "pro-yearly",
-    name: "Pro 年度",
-    price: 99.99,
-    period: "/年",
-    type: "subscription",
-    originalPrice: 119.88,
-    description: "年度订阅，省 2 个月",
-    features: [
-      "✅ 每天 100 次处理",
-      "✅ 文字 + 图片水印",
-      "✅ 高清画质导出",
-      "✅ 批量处理 (10 张)",
-      "✅ 去除水印 (5 次/天)",
-      "❌ API 访问",
-    ],
-    cta: "订阅年度",
-    highlight: false,
-    save: "省 17%",
-  },
-  {
-    id: "enterprise",
-    name: "企业版",
-    price: 199,
-    period: "/月",
-    type: "subscription",
-    originalPrice: 1999,
-    description: "适合团队和企业用户",
-    features: [
-      "✅ 无限次处理",
-      "✅ 所有水印功能",
-      "✅ 原画画质导出",
-      "✅ 批量处理 (无限)",
-      "✅ 去除水印 (无限)",
-      "✅ API 访问",
-      "✅ 专属客服支持",
-    ],
-    cta: "联系销售",
-    highlight: false,
-  },
-];
-
-// 积分包
+// 积分包配置
 const creditPacks = [
   {
     id: "credit-small",
@@ -126,15 +63,9 @@ const creditPacks = [
 
 export default function PricingPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'subscription' | 'one-time'>('subscription');
   const [loading, setLoading] = useState(false);
 
   const handlePayment = async (item: any) => {
-    if (item.id === "enterprise") {
-      window.location.href = "mailto:sales@ybbtool.com";
-      return;
-    }
-
     setLoading(true);
     
     try {
@@ -148,38 +79,26 @@ export default function PricingPage() {
         return;
       }
       
-      console.log('💳 Creating PayPal order:', {
-        amount: item.price,
-        currency: "USD",
-        plan: item.id,
-        type: item.type,
-      });
-      
       // 创建 PayPal 订单
       const response = await fetch("/api/payment/paypal/create-order", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: item.price,
           currency: "USD",
           plan: item.id,
-          type: item.type, // 'subscription' or 'one-time'
+          type: "one-time",
           credits: item.credits,
         }),
       });
       
-      console.log('📊 Response status:', response.status);
       const data = await response.json();
-      console.log('📊 Response data:', data);
       
       if (!response.ok) {
         throw new Error(data.message || data.error || `HTTP ${response.status}`);
       }
       
       if (data.success && data.approvalUrl) {
-        // 跳转到 PayPal 支付页面
         window.location.href = data.approvalUrl;
       } else {
         throw new Error(data.error || "创建订单失败");
@@ -201,11 +120,11 @@ export default function PricingPage() {
             选择适合你的方案
           </h1>
           <p className="text-xl text-slate-600">
-            简单透明的定价，随时升级或取消
+            简单透明的定价，随时升级
           </p>
         </div>
 
-        {/* 切换标签 - 暂时只显示积分包 */}
+        {/* 提示信息 */}
         <div className="text-center mb-8">
           <p className="text-lg text-slate-600 mb-2">
             💰 积分包 - 永久有效，随时使用
@@ -215,7 +134,7 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* 价格卡片 - 只显示积分包 */}
+        {/* 价格卡片 */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           {creditPacks.map((plan) => (
             <div
@@ -229,7 +148,7 @@ export default function PricingPage() {
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                   <span className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    🔥 {plan.popular === true ? '最受欢迎' : plan.popular}
+                    🔥 最受欢迎
                   </span>
                 </div>
               )}
@@ -249,20 +168,17 @@ export default function PricingPage() {
                   <span className="text-5xl font-bold text-slate-900">
                     ${plan.price}
                   </span>
-                  {'period' in plan && plan.period && (
-                    <span className="text-slate-500 ml-2">{plan.period}</span>
-                  )}
                 </div>
-                {'originalPrice' in plan && plan.originalPrice && (
+                {plan.originalPrice ? (
                   <p className="text-slate-400 line-through mt-1">
                     原价 ${plan.originalPrice}
                   </p>
-                )}
-                {'credits' in plan && plan.credits && (
+                ) : null}
+                {plan.credits ? (
                   <p className="text-blue-600 font-medium mt-2">
                     {plan.credits} 次处理 • {plan.perCredit}
                   </p>
-                )}
+                ) : null}
                 <p className="text-slate-600 mt-4">{plan.description}</p>
               </div>
 
@@ -326,42 +242,6 @@ export default function PricingPage() {
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
-
-        {/* FAQ */}
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-slate-900 mb-8">
-            常见问题
-          </h2>
-          <div className="space-y-4">
-            {[
-              {
-                q: "支持哪些支付方式？",
-                a: "我们支持 PayPal 支付，包括信用卡、借记卡和 PayPal 余额。企业版还支持银行转账。",
-              },
-              {
-                q: "订阅如何计费？",
-                a: "订阅计划按月或按年自动续费。你可以随时取消，取消后当前周期结束后不再扣费。",
-              },
-              {
-                q: "积分包会过期吗？",
-                a: "不会！积分包购买后永久有效，没有使用期限，随时可以使用。",
-              },
-              {
-                q: "可以升级或降级吗？",
-                a: "当然可以！你可以随时升级或降级你的订阅计划，系统会自动按比例计算差价。",
-              },
-              {
-                q: "支持退款吗？",
-                a: "我们提供 7 天无理由退款保证。如果你对服务不满意，可以联系客服申请退款。",
-              },
-            ].map((faq, i) => (
-              <div key={i} className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-                <h3 className="font-semibold text-slate-900 mb-2">{faq.q}</h3>
-                <p className="text-slate-600">{faq.a}</p>
-              </div>
-            ))}
           </div>
         </div>
       </div>
