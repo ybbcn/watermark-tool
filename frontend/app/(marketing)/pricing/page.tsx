@@ -3,30 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
-const plans = [
+// 订阅计划
+const subscriptionPlans = [
   {
-    id: "free",
-    name: "免费版",
-    price: 0,
-    period: "",
-    description: "适合偶尔使用的个人用户",
-    features: [
-      "✅ 每天 3 次处理",
-      "✅ 基础文字水印",
-      "✅ 标准画质导出",
-      "❌ 批量处理",
-      "❌ 去除水印",
-      "❌ API 访问",
-    ],
-    cta: "开始使用",
-    highlight: false,
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: 29,
-    period: "元/月",
-    originalPrice: 299,
+    id: "pro-monthly",
+    name: "Pro 月度",
+    price: 9.99,
+    period: "/月",
+    type: "subscription",
     description: "适合频繁使用的专业人士",
     features: [
       "✅ 每天 100 次处理",
@@ -36,15 +20,36 @@ const plans = [
       "✅ 去除水印 (5 次/天)",
       "❌ API 访问",
     ],
-    cta: "立即升级",
+    cta: "订阅 Pro",
     highlight: true,
     popular: true,
+  },
+  {
+    id: "pro-yearly",
+    name: "Pro 年度",
+    price: 99.99,
+    period: "/年",
+    type: "subscription",
+    originalPrice: 119.88,
+    description: "年度订阅，省 2 个月",
+    features: [
+      "✅ 每天 100 次处理",
+      "✅ 文字 + 图片水印",
+      "✅ 高清画质导出",
+      "✅ 批量处理 (10 张)",
+      "✅ 去除水印 (5 次/天)",
+      "❌ API 访问",
+    ],
+    cta: "订阅年度",
+    highlight: false,
+    save: "省 17%",
   },
   {
     id: "enterprise",
     name: "企业版",
     price: 199,
-    period: "元/月",
+    period: "/月",
+    type: "subscription",
     originalPrice: 1999,
     description: "适合团队和企业用户",
     features: [
@@ -61,8 +66,116 @@ const plans = [
   },
 ];
 
+// 积分包
+const creditPacks = [
+  {
+    id: "credit-small",
+    name: "小份积分",
+    price: 4.99,
+    credits: 10,
+    type: "one-time",
+    description: "适合偶尔使用",
+    perCredit: "$0.50/次",
+    features: [
+      "✅ 10 次处理",
+      "✅ 永久有效",
+      "✅ 随时使用",
+    ],
+    cta: "购买积分",
+    highlight: false,
+  },
+  {
+    id: "credit-medium",
+    name: "中份积分",
+    price: 9.99,
+    credits: 25,
+    type: "one-time",
+    originalPrice: 12.50,
+    description: "最受欢迎",
+    perCredit: "$0.40/次",
+    features: [
+      "✅ 25 次处理",
+      "✅ 永久有效",
+      "✅ 随时使用",
+      "🔥 省 20%",
+    ],
+    cta: "购买积分",
+    highlight: true,
+    popular: true,
+  },
+  {
+    id: "credit-large",
+    name: "大份积分",
+    price: 19.99,
+    credits: 60,
+    type: "one-time",
+    originalPrice: 30.00,
+    description: "超值优惠",
+    perCredit: "$0.33/次",
+    features: [
+      "✅ 60 次处理",
+      "✅ 永久有效",
+      "✅ 随时使用",
+      "💰 省 33%",
+    ],
+    cta: "购买积分",
+    highlight: false,
+    save: "最划算",
+  },
+];
+
 export default function PricingPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'subscription' | 'one-time'>('subscription');
+  const [loading, setLoading] = useState(false);
+
+  const handlePayment = async (item: any) => {
+    if (item.id === "enterprise") {
+      window.location.href = "mailto:sales@ybbtool.com";
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      // 检查登录状态
+      const sessionRes = await fetch("/api/auth/session");
+      const sessionData = await sessionRes.json();
+      
+      if (!sessionData.user) {
+        alert("请先登录后再购买");
+        window.location.href = "/api/auth/login";
+        return;
+      }
+      
+      // 创建 PayPal 订单
+      const response = await fetch("/api/payment/paypal/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: item.price,
+          currency: "USD",
+          plan: item.id,
+          type: item.type, // 'subscription' or 'one-time'
+          credits: item.credits,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.approvalUrl) {
+        // 跳转到 PayPal 支付页面
+        window.location.href = data.approvalUrl;
+      } else {
+        alert("创建订单失败：" + (data.error || "未知错误"));
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      alert("支付系统暂时不可用，请稍后重试");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-20">
@@ -77,9 +190,35 @@ export default function PricingPage() {
           </p>
         </div>
 
+        {/* 切换标签 */}
+        <div className="flex justify-center mb-12">
+          <div className="bg-white rounded-xl p-1 shadow-lg inline-flex">
+            <button
+              onClick={() => setActiveTab('subscription')}
+              className={`px-8 py-3 rounded-lg font-medium transition ${
+                activeTab === 'subscription'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              📅 订阅计划
+            </button>
+            <button
+              onClick={() => setActiveTab('one-time')}
+              className={`px-8 py-3 rounded-lg font-medium transition ${
+                activeTab === 'one-time'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              💰 积分包
+            </button>
+          </div>
+        </div>
+
         {/* 价格卡片 */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {plans.map((plan) => (
+          {(activeTab === 'subscription' ? subscriptionPlans : creditPacks).map((plan) => (
             <div
               key={plan.id}
               className={`relative bg-white rounded-2xl p-8 ${
@@ -91,7 +230,14 @@ export default function PricingPage() {
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                   <span className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    🔥 最受欢迎
+                    🔥 {plan.popular === true ? '最受欢迎' : plan.popular}
+                  </span>
+                </div>
+              )}
+              {plan.save && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                    {plan.save}
                   </span>
                 </div>
               )}
@@ -102,7 +248,7 @@ export default function PricingPage() {
                 </h3>
                 <div className="flex items-baseline justify-center">
                   <span className="text-5xl font-bold text-slate-900">
-                    ¥{plan.price}
+                    ${plan.price}
                   </span>
                   {plan.period && (
                     <span className="text-slate-500 ml-2">{plan.period}</span>
@@ -110,7 +256,12 @@ export default function PricingPage() {
                 </div>
                 {plan.originalPrice && (
                   <p className="text-slate-400 line-through mt-1">
-                    原价 ¥{plan.originalPrice}
+                    原价 ${plan.originalPrice}
+                  </p>
+                )}
+                {plan.credits && (
+                  <p className="text-blue-600 font-medium mt-2">
+                    {plan.credits} 次处理 • {plan.perCredit}
                   </p>
                 )}
                 <p className="text-slate-600 mt-4">{plan.description}</p>
@@ -126,55 +277,15 @@ export default function PricingPage() {
               </ul>
 
               <button
-                onClick={async () => {
-                  if (plan.id === "free") {
-                    router.push("/");
-                  } else if (plan.id === "enterprise") {
-                    window.location.href = "mailto:sales@ybbtool.com";
-                  } else if (plan.id === "pro") {
-                    // 检查登录状态
-                    try {
-                      const sessionRes = await fetch("/api/auth/session");
-                      const sessionData = await sessionRes.json();
-                      
-                      if (!sessionData.user) {
-                        alert("请先登录后再购买");
-                        window.location.href = "/api/auth/login";
-                        return;
-                      }
-                      
-                      // 创建 PayPal 订单
-                      const response = await fetch("/api/payment/paypal/create-order", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          amount: 9.99, // Pro 版本价格 USD
-                          currency: "USD",
-                          plan: "Pro",
-                        }),
-                      });
-                      
-                      const data = await response.json();
-                      
-                      if (data.success && data.approvalUrl) {
-                        // 跳转到 PayPal 支付页面
-                        window.location.href = data.approvalUrl;
-                      } else {
-                        alert("创建订单失败：" + (data.error || "未知错误"));
-                      }
-                    } catch (error) {
-                      console.error("Payment error:", error);
-                      alert("支付系统暂时不可用，请稍后重试");
-                    }
-                  }
-                }}
+                onClick={() => handlePayment(plan)}
+                disabled={loading}
                 className={`w-full py-4 rounded-xl font-semibold transition ${
                   plan.highlight
                     ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {plan.cta}
+                {loading ? '处理中...' : plan.cta}
               </button>
             </div>
           ))}
@@ -228,54 +339,31 @@ export default function PricingPage() {
             {[
               {
                 q: "支持哪些支付方式？",
-                a: "我们支持微信支付、支付宝、银联卡等多种支付方式。企业版还支持对公转账和开具增值税专用发票。",
+                a: "我们支持 PayPal 支付，包括信用卡、借记卡和 PayPal 余额。企业版还支持银行转账。",
               },
               {
-                q: "如何退款？",
-                a: "购买后 7 天内，如对产品不满意，可联系客服申请无条件全额退款。",
+                q: "订阅如何计费？",
+                a: "订阅计划按月或按年自动续费。你可以随时取消，取消后当前周期结束后不再扣费。",
               },
               {
-                q: "配额什么时候重置？",
-                a: "每日配额在北京时间每天凌晨 0 点自动重置。",
+                q: "积分包会过期吗？",
+                a: "不会！积分包购买后永久有效，没有使用期限，随时可以使用。",
               },
               {
-                q: "可以升级或降级方案吗？",
-                a: "可以随时升级方案，差价按比例计算。降级将在当前计费周期结束后生效。",
+                q: "可以升级或降级吗？",
+                a: "当然可以！你可以随时升级或降级你的订阅计划，系统会自动按比例计算差价。",
               },
               {
-                q: "企业版有哪些额外服务？",
-                a: "企业版包含私有化部署、定制功能开发、专属客服、SLA 服务保障、源码授权等服务。",
-              },
-              {
-                q: "未登录用户可以使用吗？",
-                a: "可以，未登录用户每天可免费处理 3 张图片。登录后每天免费 10 次，升级 Pro 后每天 100 次。",
+                q: "支持退款吗？",
+                a: "我们提供 7 天无理由退款保证。如果你对服务不满意，可以联系客服申请退款。",
               },
             ].map((faq, i) => (
-              <details
-                key={i}
-                className="bg-white rounded-xl shadow-md p-6 group"
-              >
-                <summary className="font-semibold text-slate-900 cursor-pointer list-none flex justify-between items-center">
-                  {faq.q}
-                  <span className="text-slate-400 group-open:rotate-180 transition">▼</span>
-                </summary>
-                <p className="mt-4 text-slate-600">{faq.a}</p>
-              </details>
+              <div key={i} className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                <h3 className="font-semibold text-slate-900 mb-2">{faq.q}</h3>
+                <p className="text-slate-600">{faq.a}</p>
+              </div>
             ))}
           </div>
-        </div>
-
-        {/* CTA */}
-        <div className="text-center mt-16">
-          <p className="text-slate-600 mb-4">
-            还有疑问？联系我们的团队
-          </p>
-          <a 
-            href="mailto:support@ybbtool.com"
-            className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
-          >
-            📧 support@ybbtool.com
-          </a>
         </div>
       </div>
     </div>
