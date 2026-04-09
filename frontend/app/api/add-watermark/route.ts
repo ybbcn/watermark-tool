@@ -4,10 +4,26 @@ import { checkQuota, consumeQuota } from "@/lib/quota";
 
 export const runtime = 'edge';
 
-export async function POST(request: NextRequest, context: any) {
+// @ts-ignore - Cloudflare Pages 环境
+declare const __cf_env__: any;
+
+function getDB(): any {
+  // 尝试多种方式获取 env
+  if ((globalThis as any).DB) {
+    return (globalThis as any).DB;
+  }
+  if ((process.env as any).DB) {
+    return (process.env as any).DB;
+  }
+  if (typeof __cf_env__ !== 'undefined' && __cf_env__.DB) {
+    return __cf_env__.DB;
+  }
+  return null;
+}
+
+export async function POST(request: NextRequest) {
   try {
-    const env = context.env || {};
-    const db = env.DB;
+    const db = getDB();
     
     if (!db) {
       console.error("❌ [Watermark] DB not configured");
@@ -74,6 +90,7 @@ export async function POST(request: NextRequest, context: any) {
       }
     }
 
+    // 处理图片
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
     const imageBitmap = await createImageBitmap(new Blob([uint8Array]));
@@ -98,6 +115,7 @@ export async function POST(request: NextRequest, context: any) {
     
     console.log("✅ [Watermark] Image processed successfully");
     
+    // 扣减配额
     if (!isAnonymous && userId) {
       try {
         const consumed = await consumeQuota(db, userId);
