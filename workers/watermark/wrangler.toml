@@ -3,7 +3,9 @@ main = "src/index.js"
 compatibility_date = "2024-01-01"
 
 routes = [
-  { pattern = "ybbtool.com/auth/*", zone_name = "ybbtool.com" }
+  { pattern = "ybbtool.com/auth/*", zone_name = "ybbtool.com" },
+  { pattern = "ybbtool.com/api/*", zone_name = "ybbtool.com" },
+  { pattern = "api.ybbtool.com/*", zone_name = "ybbtool.com" }
 ]
 
 # D1 数据库 binding

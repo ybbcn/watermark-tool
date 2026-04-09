@@ -13,6 +13,8 @@ export async function POST(request: NextRequest, { env }: any) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
+    console.log("📥 [Watermark] Received file:", file.name, file.size, "bytes");
+
     // 检查用户登录状态
     const cookies = request.headers.get("cookie");
     const sessionToken = getSessionCookie(cookies);
@@ -21,48 +23,83 @@ export async function POST(request: NextRequest, { env }: any) {
     let isAnonymous = false;
     
     if (sessionToken) {
-      const session = await verifySession(sessionToken);
-      if (session) {
-        userId = session.user.id;
+      try {
+        const session = await verifySession(sessionToken);
+        if (session) {
+          userId = session.user.id;
+          console.log("✅ [Watermark] User authenticated:", userId);
+        }
+      } catch (authErr) {
+        console.warn("⚠️ [Watermark] Auth failed:", authErr);
       }
     }
     
     // 如果未登录，使用匿名配额
     if (!userId) {
       isAnonymous = true;
-      // 检查匿名配额（简化处理，实际应该在服务端检查）
-      console.log("🔐 [Watermark] Anonymous user, allowing with limited quota");
+      console.log("🔐 [Watermark] Anonymous user");
     } else {
       // 检查登录用户配额
-      const quotaCheck = await checkQuota(env.DB, userId);
-      console.log("🔐 [Watermark] Quota check for user", userId, ":", quotaCheck);
-      
-      if (!quotaCheck.allowed) {
-        console.warn("⚠️ [Watermark] User", userId, "quota exceeded. Remaining:", quotaCheck.remaining, "Limit:", quotaCheck.limit);
+      try {
+        const quotaCheck = await checkQuota(env.DB, userId);
+        console.log("🔐 [Watermark] Quota check for user", userId, ":", quotaCheck);
+        
+        if (!quotaCheck.allowed) {
+          console.warn("⚠️ [Watermark] User", userId, "quota exceeded. Remaining:", quotaCheck.remaining, "Limit:", quotaCheck.limit);
+          return NextResponse.json(
+            { 
+              error: "Quota exceeded",
+              message: "今日配额已用完，请明天再来或升级 Pro",
+              remaining: quotaCheck.remaining,
+              limit: quotaCheck.limit,
+            },
+            { status: 403 }
+          );
+        }
+      } catch (dbErr) {
+        console.error("❌ [Watermark] DB error:", dbErr);
         return NextResponse.json(
-          { 
-            error: "Quota exceeded",
-            message: "今日配额已用完，请明天再来或升级 Pro",
-            remaining: quotaCheck.remaining,
-            limit: quotaCheck.limit,
+          {
+            error: "Database error",
+            message: "无法验证配额，请稍后重试",
           },
-          { status: 403 }
+          { status: 500 }
         );
       }
     }
 
-    // 转发到 Cloudflare Worker 处理图片
-    const workerUrl = `https://api.ybbtool.com/api/add-watermark`;
-    const response = await fetch(workerUrl, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      return NextResponse.json({ error: "Processing failed" }, { status: 500 });
+    // 在 Edge 环境中使用 Canvas 处理图片
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // 创建 ImageBitmap（Edge Runtime 支持）
+    const imageBitmap = await createImageBitmap(new Blob([uint8Array]));
+    
+    // 创建 OffscreenCanvas
+    const canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      throw new Error("Cannot get canvas context");
     }
-
-    const blob = await response.blob();
+    
+    // 绘制原图
+    ctx.drawImage(imageBitmap, 0, 0);
+    
+    // 添加文字水印
+    ctx.font = `${Math.floor(canvas.width / 20)}px Arial`;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "bottom";
+    ctx.fillText("Watermark", canvas.width - 20, canvas.height - 20);
+    
+    // 导出为 JPEG
+    const processedBlob = await canvas.convertToBlob({
+      type: "image/jpeg",
+      quality: 0.95,
+    });
+    
+    console.log("✅ [Watermark] Image processed successfully");
     
     // 处理成功，扣减配额
     if (!isAnonymous && userId) {
@@ -71,15 +108,14 @@ export async function POST(request: NextRequest, { env }: any) {
         if (consumed) {
           console.log("✅ [Watermark] Quota consumed for user:", userId);
         } else {
-          console.warn("⚠️ [Watermark] Quota NOT consumed (may have reached limit):", userId);
+          console.warn("⚠️ [Watermark] Quota NOT consumed:", userId);
         }
       } catch (quotaErr) {
         console.error("❌ [Watermark] Failed to consume quota:", quotaErr);
-        // 配额扣减失败不影响返回结果
       }
     }
     
-    return new NextResponse(blob, {
+    return new NextResponse(processedBlob, {
       status: 200,
       headers: {
         "Content-Type": "image/jpeg",
