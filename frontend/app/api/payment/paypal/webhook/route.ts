@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = 'edge';
+
 /**
  * PayPal Webhook 处理器
  * 用于接收支付成功、订阅激活等通知

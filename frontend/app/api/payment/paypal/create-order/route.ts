@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createOrder, createSubscription, SUBSCRIPTION_PLANS, CREDIT_PACKS } from "@/lib/paypal";
 
+export const runtime = 'edge';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
