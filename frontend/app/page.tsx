@@ -71,25 +71,50 @@ export default function Home() {
   }, []);
 
   const handleProcess = useCallback(async () => {
-    if (!file) return;
+    if (!file) {
+      setError("请先上传图片");
+      return;
+    }
+    
+    // 检查用户是否登录
+    try {
+      const sessionRes = await fetch("/api/auth/session");
+      const sessionData = await sessionRes.json();
+      
+      if (!sessionData.user) {
+        setError("请先登录后再使用水印功能");
+        // 3 秒后自动跳转到登录页面
+        setTimeout(() => {
+          window.location.href = "/api/auth/login";
+        }, 3000);
+        return;
+      }
+    } catch (err) {
+      console.error("Session check failed:", err);
+    }
     
     setProcessing(true);
     setError(null);
     setResult(null);
 
     try {
-      // 使用后端 API 处理，以便扣减配额
       const formData = new FormData();
       formData.append("file", file);
       
       const response = await fetch("/api/add-watermark", {
         method: "POST",
         body: formData,
-        credentials: "include", // 包含 cookie 用于身份验证
+        credentials: "include",
       });
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        
+        // 如果是 403 配额超限，提示升级
+        if (response.status === 403) {
+          throw new Error("今日配额已用完，请明天再来或升级 Pro");
+        }
+        
         throw new Error(errorData.message || `处理失败：${response.status}`);
       }
       
