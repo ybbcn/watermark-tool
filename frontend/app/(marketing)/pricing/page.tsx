@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const plans = [
   {
@@ -125,14 +126,46 @@ export default function PricingPage() {
               </ul>
 
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (plan.id === "free") {
                     router.push("/");
                   } else if (plan.id === "enterprise") {
                     window.location.href = "mailto:sales@ybbtool.com";
-                  } else {
-                    // 暂时显示提示
-                    alert("支付功能即将上线，敬请期待！\n\n当前为测试版本，所有功能免费使用。");
+                  } else if (plan.id === "pro") {
+                    // 检查登录状态
+                    try {
+                      const sessionRes = await fetch("/api/auth/session");
+                      const sessionData = await sessionRes.json();
+                      
+                      if (!sessionData.user) {
+                        alert("请先登录后再购买");
+                        window.location.href = "/api/auth/login";
+                        return;
+                      }
+                      
+                      // 创建 PayPal 订单
+                      const response = await fetch("/api/payment/paypal/create-order", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          amount: 9.99, // Pro 版本价格 USD
+                          currency: "USD",
+                          plan: "Pro",
+                        }),
+                      });
+                      
+                      const data = await response.json();
+                      
+                      if (data.success && data.approvalUrl) {
+                        // 跳转到 PayPal 支付页面
+                        window.location.href = data.approvalUrl;
+                      } else {
+                        alert("创建订单失败：" + (data.error || "未知错误"));
+                      }
+                    } catch (error) {
+                      console.error("Payment error:", error);
+                      alert("支付系统暂时不可用，请稍后重试");
+                    }
                   }
                 }}
                 className={`w-full py-4 rounded-xl font-semibold transition ${

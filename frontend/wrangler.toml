@@ -8,3 +8,8 @@ pages_build_output_dir = ".vercel/output/static"
 binding = "DB"
 database_name = "watermark-tool-db"
 database_id = "7607e1d1-9605-4588-a486-9e7da2cdc749"
+
+# PayPal 配置
+[vars]
+PAYPAL_CLIENT_ID = "AcUbK79ebsBTlnxzf4gcBvGlpFR-R3ZnLk4yQPjwNM9J3c_8HLyhW0jVSG23UzQXlTX_KK0WeUKuVJoK"
+PAYPAL_BASE_URL = "https://api-m.paypal.com"
