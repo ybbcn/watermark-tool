@@ -4,7 +4,7 @@ import { captureOrder, getOrderDetails } from "@/lib/paypal";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { orderId, userId, userEmail, plan } = body;
+    const { orderId } = body;
     
     if (!orderId) {
       return NextResponse.json(
@@ -12,6 +12,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    
+    console.log('🔔 [PayPal] Capturing order:', orderId);
     
     // 捕获订单
     const captureResult = await captureOrder(orderId);
@@ -35,19 +37,15 @@ export async function POST(request: NextRequest) {
       orderId,
       amount,
       currency,
-      userId,
-      plan,
     });
     
     // TODO: 更新用户配额（需要实现数据库访问）
-    console.log('ℹ️ [PayPal] User quota update skipped (needs database integration)');
     
     return NextResponse.json({
       success: true,
       status: 'COMPLETED',
       amount,
       currency,
-      plan,
     });
   } catch (error) {
     console.error('❌ [PayPal] Capture order error:', error);
