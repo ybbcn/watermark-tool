@@ -83,92 +83,23 @@ export async function POST(request: NextRequest) {
     const fontSize = parseInt(formData.get("fontSize") as string) || 48;
     const color = formData.get("color") as string || "#FFFFFF";
     
-    console.log(`📝 [Watermark] Text: ${text}, Position: ${position}, Opacity: ${opacity}`);
+    console.log(`📝 [Watermark] Text: ${text}, Position: ${position}, Opacity: ${opacity}, FontSize: ${fontSize}, Color: ${color}`);
     
-    // 使用 Canvas 在 Edge Runtime 中处理图片
-    try {
-      // 创建 ImageBitmap
-      const imageBitmap = await createImageBitmap(new Blob([buffer]));
-      
-      // 创建 canvas
-      const canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        throw new Error('Failed to get canvas context');
-      }
-      
-      // 绘制原图
-      ctx.drawImage(imageBitmap, 0, 0);
-      
-      // 绘制水印文字
-      ctx.globalAlpha = opacity;
-      ctx.font = `${fontSize}px Arial`;
-      ctx.fillStyle = color;
-      ctx.textBaseline = 'bottom';
-      
-      const metrics = ctx.measureText(text);
-      const textWidth = metrics.width;
-      const textHeight = fontSize;
-      const padding = 10;
-      
-      let x = padding;
-      let y = canvas.height - padding;
-      
-      switch (position) {
-        case 'top-left':
-          x = padding;
-          y = padding + textHeight;
-          break;
-        case 'top-right':
-          x = canvas.width - textWidth - padding;
-          y = padding + textHeight;
-          break;
-        case 'bottom-left':
-          x = padding;
-          y = canvas.height - padding;
-          break;
-        case 'bottom-right':
-          x = canvas.width - textWidth - padding;
-          y = canvas.height - padding;
-          break;
-        case 'center':
-          x = (canvas.width - textWidth) / 2;
-          y = (canvas.height + textHeight) / 2;
-          break;
-      }
-      
-      ctx.fillText(text, x, y);
-      ctx.globalAlpha = 1.0;
-      
-      // 导出图片
-      const processedBlob = await canvas.convertToBlob({
-        type: file.type || 'image/jpeg',
-        quality: 0.95,
-      });
-      
-      const processedBuffer = await processedBlob.arrayBuffer();
-      
-      console.log("✅ [Watermark] Processing complete");
-      
-      return new NextResponse(processedBuffer, {
-        status: 200,
-        headers: {
-          "Content-Type": file.type || 'image/jpeg',
-          "Content-Disposition": `attachment; filename="watermarked_${file.name}"`,
-        },
-      });
-    } catch (error) {
-      console.error("❌ [Watermark] Processing error:", error);
-      // 如果处理失败，返回原图
-      return new NextResponse(buffer, {
-        status: 200,
-        headers: {
-          "Content-Type": file.type,
-          "Content-Disposition": `attachment; filename="${file.name}"`,
-        },
-      });
-    }
+    // 使用 sharp 处理图片（需要 Node.js 环境）
+    // 由于 Edge Runtime 不支持 sharp，暂时返回原图并记录日志
+    // TODO: 在 backend Python 服务中实现水印处理
+    
+    console.log("⚠️ [Watermark] Edge Runtime 不支持图片处理，返回原图。水印处理功能需要部署 backend 服务。");
+    
+    // 返回原图（带日志说明）
+    return new NextResponse(buffer, {
+      status: 200,
+      headers: {
+        "Content-Type": file.type || 'image/jpeg',
+        "Content-Disposition": `attachment; filename="${file.name}"`,
+        "X-Watermark-Note": "水印处理需要 backend 服务，当前返回原图",
+      },
+    });
   } catch (error) {
     console.error("❌ Error:", error);
     return NextResponse.json(
