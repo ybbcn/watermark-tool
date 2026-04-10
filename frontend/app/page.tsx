@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { UserMenu } from "@/components/UserMenu";
+import { processImage } from "@/lib/image-processor";
 
 type Operation = "add-text" | "add-image";
 
@@ -77,20 +78,24 @@ export default function Home() {
     }
     
     // 检查用户是否登录
+    let isLoggedIn = false;
     try {
       const sessionRes = await fetch("/api/auth/session");
       const sessionData = await sessionRes.json();
       
-      if (!sessionData.user) {
-        setError("请先登录后再使用水印功能");
-        // 3 秒后自动跳转到登录页面
-        setTimeout(() => {
-          window.location.href = "/api/auth/login";
-        }, 3000);
-        return;
+      if (sessionData.user) {
+        isLoggedIn = true;
       }
     } catch (err) {
       console.error("Session check failed:", err);
+    }
+    
+    if (!isLoggedIn) {
+      setError("请先登录后再使用水印功能");
+      setTimeout(() => {
+        window.location.href = "/api/auth/login";
+      }, 3000);
+      return;
     }
     
     setProcessing(true);
@@ -98,40 +103,22 @@ export default function Home() {
     setResult(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      
-      const response = await fetch("/api/add-watermark", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        
-        // 如果是 403 配额超限，提示升级
-        if (response.status === 403) {
-          // 刷新配额显示
-          window.dispatchEvent(new CustomEvent('quota-updated'));
-          throw new Error("今日配额已用完，请明天再来或升级 Pro");
-        }
-        
-        throw new Error(errorData.message || `处理失败：${response.status}`);
-      }
-      
-      const blob = await response.blob();
+      // 纯前端处理水印
+      const blob = await processImage(file, operation, watermarkSettings);
       const url = URL.createObjectURL(blob);
       setResult(url);
       
       // 处理成功后刷新配额显示
       window.dispatchEvent(new CustomEvent('quota-updated'));
+      
+      console.log('✅ [Watermark] Processing complete, quota update event dispatched');
     } catch (err) {
       setError(err instanceof Error ? err.message : "处理失败");
+      console.error('❌ [Watermark] Processing error:', err);
     } finally {
       setProcessing(false);
     }
-  }, [file]);
+  }, [file, operation, watermarkSettings]);
 
   const handleDownload = useCallback(() => {
     if (!result) return;
