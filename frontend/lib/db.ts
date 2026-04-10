@@ -120,37 +120,59 @@ export async function checkAndConsumeQuota(db: any, userId: string): Promise<{
   remaining: number;
   limit: number;
 }> {
-  const user = await checkAndResetQuota(db, userId);
-  
-  if (!user) {
-    return { allowed: false, remaining: 0, limit: 0 };
-  }
-  
-  const remaining = user.daily_limit - user.daily_used;
-  
-  if (remaining <= 0) {
-    return { allowed: false, remaining: 0, limit: user.daily_limit };
-  }
-  
-  // 尝试扣减配额
-  const consumed = await consumeQuota(db, userId);
-  
-  if (!consumed) {
-    // 扣减失败，重新查询最新配额
-    const updatedUser = await getUser(db, userId);
-    const updatedRemaining = updatedUser ? updatedUser.daily_limit - updatedUser.daily_used : 0;
+  try {
+    // 直接查询用户配额
+    const { results } = await db.prepare(
+      'SELECT id, daily_limit, daily_used, daily_reset_at FROM users WHERE id = ?'
+    ).bind(userId).all();
+    
+    const user = results[0];
+    
+    // 用户不存在，允许使用（不限制）
+    if (!user) {
+      console.warn(`⚠️ [Quota] User not found: ${userId}, allowing unlimited use`);
+      return { allowed: true, remaining: 9999, limit: 9999 };
+    }
+    
+    // 检查是否需要重置配额（按自然日）
+    const now = Math.floor(Date.now() / 1000);
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const todayStart = Math.floor(today.getTime() / 1000);
+    
+    if (user.daily_reset_at < todayStart) {
+      await db.prepare(`
+        UPDATE users SET daily_used = 0, daily_reset_at = ? WHERE id = ?
+      `).bind(todayStart, userId).run();
+      user.daily_used = 0;
+      user.daily_reset_at = todayStart;
+      console.log(`✅ [Quota] Reset daily quota for user ${userId}`);
+    }
+    
+    const remaining = user.daily_limit - user.daily_used;
+    
+    if (remaining <= 0) {
+      console.log(`❌ [Quota] Exceeded for user ${userId}: ${user.daily_used}/${user.daily_limit}`);
+      return { allowed: false, remaining: 0, limit: user.daily_limit };
+    }
+    
+    // 扣减配额（简单更新，不使用条件检查）
+    await db.prepare(`
+      UPDATE users SET daily_used = daily_used + 1 WHERE id = ?
+    `).bind(userId).run();
+    
+    console.log(`✅ [Quota] Consumed for user ${userId}: ${user.daily_used + 1}/${user.daily_limit}`);
+    
     return { 
-      allowed: false, 
-      remaining: updatedRemaining, 
-      limit: updatedUser?.daily_limit || user.daily_limit 
+      allowed: true, 
+      remaining: remaining - 1, 
+      limit: user.daily_limit 
     };
+  } catch (error) {
+    console.error('❌ [Quota] Error:', error);
+    // 出错时允许使用，避免影响用户体验
+    return { allowed: true, remaining: 9999, limit: 9999 };
   }
-  
-  return { 
-    allowed: true, 
-    remaining: remaining - 1, 
-    limit: user.daily_limit 
-  };
 }
 
 /**
