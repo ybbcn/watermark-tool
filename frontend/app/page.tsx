@@ -126,6 +126,11 @@ export default function Home() {
       
       // 处理成功后刷新配额显示
       window.dispatchEvent(new CustomEvent('quota-updated'));
+      
+      // 延迟刷新页面以更新配额显示（1 秒后）
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "处理失败");
     } finally {
