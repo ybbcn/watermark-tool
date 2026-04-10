@@ -88,19 +88,21 @@ export async function updateUserQuota(db: any, userId: string, used: number) {
 }
 
 /**
- * 消耗配额
+ * 消耗配额（带条件检查，防止超限）
  */
 export async function consumeQuota(db: any, userId: string): Promise<boolean> {
   try {
+    // 使用原子操作：只有当 daily_used < daily_limit 时才扣减
     const result = await db.prepare(`
-      UPDATE users SET daily_used = daily_used + 1, updated_at = strftime('%s', 'now')
-      WHERE id = ?
+      UPDATE users 
+      SET daily_used = daily_used + 1, updated_at = strftime('%s', 'now')
+      WHERE id = ? AND daily_used < daily_limit
     `).bind(userId).run();
     
     const success = result.success && result.meta.changes > 0;
     
     if (!success) {
-      console.error("❌ [DB] consumeQuota failed for user", userId, "- changes:", result.meta.changes);
+      console.warn("⚠️ [DB] consumeQuota failed for user", userId, "- changes:", result.meta.changes, "(可能配额已用完)");
     }
     
     return success;
@@ -108,6 +110,47 @@ export async function consumeQuota(db: any, userId: string): Promise<boolean> {
     console.error("❌ [DB] consumeQuota error for user", userId, ":", error);
     throw error;
   }
+}
+
+/**
+ * 检查并消耗配额（原子操作，防止并发）
+ */
+export async function checkAndConsumeQuota(db: any, userId: string): Promise<{
+  allowed: boolean;
+  remaining: number;
+  limit: number;
+}> {
+  const user = await checkAndResetQuota(db, userId);
+  
+  if (!user) {
+    return { allowed: false, remaining: 0, limit: 0 };
+  }
+  
+  const remaining = user.daily_limit - user.daily_used;
+  
+  if (remaining <= 0) {
+    return { allowed: false, remaining: 0, limit: user.daily_limit };
+  }
+  
+  // 尝试扣减配额
+  const consumed = await consumeQuota(db, userId);
+  
+  if (!consumed) {
+    // 扣减失败，重新查询最新配额
+    const updatedUser = await getUser(db, userId);
+    const updatedRemaining = updatedUser ? updatedUser.daily_limit - updatedUser.daily_used : 0;
+    return { 
+      allowed: false, 
+      remaining: updatedRemaining, 
+      limit: updatedUser?.daily_limit || user.daily_limit 
+    };
+  }
+  
+  return { 
+    allowed: true, 
+    remaining: remaining - 1, 
+    limit: user.daily_limit 
+  };
 }
 
 /**
@@ -182,24 +225,28 @@ export async function getRecentUsage(db: any, userId: string, limit = 10): Promi
 }
 
 /**
- * 检查并重置每日配额
+ * 检查并重置每日配额（按自然日重置，每天 0 点）
  */
 export async function checkAndResetQuota(db: any, userId: string): Promise<User | null> {
   const user = await getUser(db, userId);
   if (!user) return null;
 
   const now = Math.floor(Date.now() / 1000);
-  const daySeconds = 24 * 60 * 60;
   
-  // 检查是否需要重置配额
-  if (now - user.daily_reset_at >= daySeconds) {
+  // 计算今天的开始时间（自然日 0 点，UTC 时间戳）
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const todayStart = Math.floor(today.getTime() / 1000);
+  
+  // 检查是否需要重置配额（按自然日）
+  if (user.daily_reset_at < todayStart) {
     await db.prepare(`
       UPDATE users SET daily_used = 0, daily_reset_at = ?, updated_at = strftime('%s', 'now')
       WHERE id = ?
-    `).bind(now, userId).run();
+    `).bind(todayStart, userId).run();
     
     user.daily_used = 0;
-    user.daily_reset_at = now;
+    user.daily_reset_at = todayStart;
   }
   
   return user;

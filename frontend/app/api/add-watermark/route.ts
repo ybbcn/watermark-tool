@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession, getSessionCookie } from "@/lib/auth";
-import { checkQuota, consumeQuota } from "@/lib/quota";
+import { checkAndConsumeQuota } from "@/lib/db";
 
 export const runtime = 'edge';
 
@@ -45,17 +45,27 @@ export async function POST(request: NextRequest) {
       } catch (e) {}
     }
     
-    // 检查配额
+    // 使用原子操作检查并扣减配额（防止并发问题）
+    let quotaRemaining = -1;
+    let quotaLimit = -1;
+    
     if (userId) {
       try {
-        const quotaCheck = await checkQuota(db, userId);
-        if (!quotaCheck.allowed) {
+        const result = await checkAndConsumeQuota(db, userId);
+        quotaRemaining = result.remaining;
+        quotaLimit = result.limit;
+        
+        console.log(`📊 [Quota] After check&consume: ${result.remaining}/${result.limit} remaining, allowed=${result.allowed}`);
+        
+        if (!result.allowed) {
+          console.log(`❌ [Quota] Exceeded for user ${userId}`);
           return NextResponse.json(
             { error: "Quota exceeded", message: "今日配额已用完" },
             { status: 403 }
           );
         }
       } catch (e) {
+        console.error("❌ [Quota] Check&consume failed:", e);
         return NextResponse.json({ error: "Database error" }, { status: 500 });
       }
     }
@@ -67,14 +77,6 @@ export async function POST(request: NextRequest) {
     // 使用 Node.js 的 sharp 或简单返回原图（临时方案）
     // 由于 Edge Runtime 限制，暂时只扣配额不处理图片
     console.log("⚠️ [Watermark] Processing not available in Edge Runtime, returning original");
-    
-    // 扣减配额
-    if (userId) {
-      try {
-        await consumeQuota(db, userId);
-        console.log("✅ Quota consumed");
-      } catch (e) {}
-    }
     
     return new NextResponse(buffer, {
       status: 200,

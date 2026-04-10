@@ -19,7 +19,7 @@ export function UserMenu() {
   const [loading, setLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  useEffect(() => {
+  const fetchUser = useCallback(() => {
     fetch("/api/auth/session")
       .then((res) => res.json())
       .then((data) => {
@@ -30,6 +30,18 @@ export function UserMenu() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    fetchUser();
+    
+    // 监听配额更新事件
+    const handleQuotaUpdate = () => fetchUser();
+    window.addEventListener('quota-updated', handleQuotaUpdate);
+    
+    return () => {
+      window.removeEventListener('quota-updated', handleQuotaUpdate);
+    };
+  }, [fetchUser]);
 
   const handleLogout = () => {
     window.location.href = "/api/auth/logout";

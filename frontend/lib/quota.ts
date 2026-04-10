@@ -105,4 +105,4 @@ export { getSubscriptionLimits };
 /**
  * 消耗配额（从 db.ts 重新导出）
  */
-export { consumeQuota } from "./db";
+export { consumeQuota, checkAndConsumeQuota } from "./db";

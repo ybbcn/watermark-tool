@@ -112,6 +112,8 @@ export default function Home() {
         
         // 如果是 403 配额超限，提示升级
         if (response.status === 403) {
+          // 刷新配额显示
+          window.dispatchEvent(new CustomEvent('quota-updated'));
           throw new Error("今日配额已用完，请明天再来或升级 Pro");
         }
         
@@ -121,6 +123,9 @@ export default function Home() {
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       setResult(url);
+      
+      // 处理成功后刷新配额显示
+      window.dispatchEvent(new CustomEvent('quota-updated'));
     } catch (err) {
       setError(err instanceof Error ? err.message : "处理失败");
     } finally {
