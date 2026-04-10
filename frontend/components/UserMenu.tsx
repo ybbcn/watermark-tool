@@ -35,11 +35,21 @@ export function UserMenu() {
     fetchUser();
     
     // 监听配额更新事件
-    const handleQuotaUpdate = () => fetchUser();
+    const handleQuotaUpdate = () => {
+      console.log('📊 [UserMenu] Quota update event received, refreshing...');
+      fetchUser();
+    };
     window.addEventListener('quota-updated', handleQuotaUpdate);
+    
+    // 定期刷新配额（每 10 秒）
+    const interval = setInterval(() => {
+      console.log('📊 [UserMenu] Periodic quota refresh');
+      fetchUser();
+    }, 10000);
     
     return () => {
       window.removeEventListener('quota-updated', handleQuotaUpdate);
+      clearInterval(interval);
     };
   }, [fetchUser]);
 

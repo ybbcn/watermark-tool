@@ -70,21 +70,105 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 读取图片并处理
+    // 读取图片
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
-    // 使用 Node.js 的 sharp 或简单返回原图（临时方案）
-    // 由于 Edge Runtime 限制，暂时只扣配额不处理图片
-    console.log("⚠️ [Watermark] Processing not available in Edge Runtime, returning original");
+    console.log("📥 [Watermark] Processing image...");
     
-    return new NextResponse(buffer, {
-      status: 200,
-      headers: {
-        "Content-Type": file.type,
-        "Content-Disposition": `attachment; filename="${file.name}"`,
-      },
-    });
+    // 读取表单中的水印参数
+    const text = formData.get("text") as string || "水印";
+    const position = formData.get("position") as string || "bottom-right";
+    const opacity = parseFloat(formData.get("opacity") as string) || 1.0;
+    const fontSize = parseInt(formData.get("fontSize") as string) || 48;
+    const color = formData.get("color") as string || "#FFFFFF";
+    
+    console.log(`📝 [Watermark] Text: ${text}, Position: ${position}, Opacity: ${opacity}`);
+    
+    // 使用 Canvas 在 Edge Runtime 中处理图片
+    try {
+      // 创建 ImageBitmap
+      const imageBitmap = await createImageBitmap(new Blob([buffer]));
+      
+      // 创建 canvas
+      const canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        throw new Error('Failed to get canvas context');
+      }
+      
+      // 绘制原图
+      ctx.drawImage(imageBitmap, 0, 0);
+      
+      // 绘制水印文字
+      ctx.globalAlpha = opacity;
+      ctx.font = `${fontSize}px Arial`;
+      ctx.fillStyle = color;
+      ctx.textBaseline = 'bottom';
+      
+      const metrics = ctx.measureText(text);
+      const textWidth = metrics.width;
+      const textHeight = fontSize;
+      const padding = 10;
+      
+      let x = padding;
+      let y = canvas.height - padding;
+      
+      switch (position) {
+        case 'top-left':
+          x = padding;
+          y = padding + textHeight;
+          break;
+        case 'top-right':
+          x = canvas.width - textWidth - padding;
+          y = padding + textHeight;
+          break;
+        case 'bottom-left':
+          x = padding;
+          y = canvas.height - padding;
+          break;
+        case 'bottom-right':
+          x = canvas.width - textWidth - padding;
+          y = canvas.height - padding;
+          break;
+        case 'center':
+          x = (canvas.width - textWidth) / 2;
+          y = (canvas.height + textHeight) / 2;
+          break;
+      }
+      
+      ctx.fillText(text, x, y);
+      ctx.globalAlpha = 1.0;
+      
+      // 导出图片
+      const processedBlob = await canvas.convertToBlob({
+        type: file.type || 'image/jpeg',
+        quality: 0.95,
+      });
+      
+      const processedBuffer = await processedBlob.arrayBuffer();
+      
+      console.log("✅ [Watermark] Processing complete");
+      
+      return new NextResponse(processedBuffer, {
+        status: 200,
+        headers: {
+          "Content-Type": file.type || 'image/jpeg',
+          "Content-Disposition": `attachment; filename="watermarked_${file.name}"`,
+        },
+      });
+    } catch (error) {
+      console.error("❌ [Watermark] Processing error:", error);
+      // 如果处理失败，返回原图
+      return new NextResponse(buffer, {
+        status: 200,
+        headers: {
+          "Content-Type": file.type,
+          "Content-Disposition": `attachment; filename="${file.name}"`,
+        },
+      });
+    }
   } catch (error) {
     console.error("❌ Error:", error);
     return NextResponse.json(
