@@ -103,10 +103,29 @@ export default function Home() {
     setResult(null);
 
     try {
+      // 准备水印设置
+      const settings = {
+        ...watermarkSettings,
+        image: operation === 'add-image' ? watermarkImage || undefined : undefined,
+      };
+      
       // 纯前端处理水印
-      const blob = await processImage(file, operation, watermarkSettings);
+      const blob = await processImage(file, operation, settings);
       const url = URL.createObjectURL(blob);
       setResult(url);
+      
+      // 调用后端 API 扣减配额
+      try {
+        const quotaRes = await fetch('/api/consume-quota', {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (quotaRes.ok) {
+          console.log('✅ [Quota] Consumed successfully');
+        }
+      } catch (e) {
+        console.warn('⚠️ [Quota] Failed to consume:', e);
+      }
       
       // 处理成功后刷新配额显示
       window.dispatchEvent(new CustomEvent('quota-updated'));
@@ -118,7 +137,7 @@ export default function Home() {
     } finally {
       setProcessing(false);
     }
-  }, [file, operation, watermarkSettings]);
+  }, [file, operation, watermarkSettings, watermarkImage]);
 
   const handleDownload = useCallback(() => {
     if (!result) return;

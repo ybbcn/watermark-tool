@@ -238,6 +238,7 @@ export async function processImage(
       const ctx = canvas.getContext('2d');
       
       if (!ctx) {
+        URL.revokeObjectURL(url);
         reject(new Error('Cannot get canvas context'));
         return;
       }
@@ -245,29 +246,42 @@ export async function processImage(
       // 绘制原图
       ctx.drawImage(img, 0, 0);
       
-      // 执行操作
-      if (operation === 'add-text') {
-        addTextWatermark(canvas, options);
-      } else if (operation === 'add-image' && options.image) {
-        addImageWatermark(canvas, options.image, options);
-      }
-      
-      // 导出结果
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            URL.revokeObjectURL(url);
-            resolve(blob);
+      try {
+        // 执行操作
+        if (operation === 'add-text') {
+          addTextWatermark(canvas, options);
+          console.log('✅ [Image Processor] Text watermark applied');
+        } else if (operation === 'add-image') {
+          if (options.image) {
+            addImageWatermark(canvas, options.image, options);
+            console.log('✅ [Image Processor] Image watermark applied');
           } else {
-            reject(new Error('Failed to export image'));
+            console.warn('⚠️ [Image Processor] No watermark image provided');
           }
-        },
-        file.type,
-        0.95
-      );
+        }
+        
+        // 导出结果
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(url);
+            if (blob) {
+              console.log(`✅ [Image Processor] Exported blob: ${blob.size} bytes`);
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to export image'));
+            }
+          },
+          file.type || 'image/jpeg',
+          0.95
+        );
+      } catch (err) {
+        URL.revokeObjectURL(url);
+        reject(err);
+      }
     };
     
     img.onerror = () => {
+      URL.revokeObjectURL(url);
       reject(new Error('Failed to load image'));
     };
     
